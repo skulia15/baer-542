@@ -52,7 +52,7 @@ export default function BodaPage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="font-semibold text-stone-900">Bjóða meðlim</h1>
+        <h1 className="font-semibold text-stone-900">Bjóða notanda</h1>
       </div>
       <p className="mb-4 text-sm text-stone-500">
         Búðu til boðshlekkur sem gildir í 7 daga. Sendið hlekk í tölvupósti eða síma.

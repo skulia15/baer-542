@@ -36,10 +36,10 @@ export default async function StillingarPage() {
               <ChevronRight className="h-4 w-4 text-stone-400" />
             </Link>
             <Link
-              href="/stillingar/boda"
+              href="/stillingar/bjoda"
               className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-stone-50"
             >
-              <span className="text-sm text-stone-800">Bjóða meðlim</span>
+              <span className="text-sm text-stone-800">Bjóða notanda</span>
               <ChevronRight className="h-4 w-4 text-stone-400" />
             </Link>
           </>
