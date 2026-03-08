@@ -1,16 +1,15 @@
 'use client'
 
-import { releaseDays } from '@/actions/release'
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { DayPicker } from '@/components/forms/day-picker'
+import { setDayPlans } from '@/actions/release'
 import { useBanner } from '@/hooks/use-banner'
 import { createClient } from '@/lib/supabase/client'
-import type { WeekAllocation } from '@/types/db'
 import { addDays } from 'date-fns'
-import { ChevronLeft } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import type { WeekAllocation } from '@/types/db'
 
-export default function LosaPage() {
+export default function StadfestaDagaPage() {
   const { weekNumber } = useParams<{ weekNumber: string }>()
   const router = useRouter()
   const { showBanner } = useBanner()
@@ -24,18 +23,26 @@ export default function LosaPage() {
       const year = new Date().getFullYear()
       const { data: yr } = await supabase.from('year').select('id').eq('year', year).single()
       if (!yr) return
-      const { data } = await supabase
+      const { data: alloc } = await supabase
         .from('week_allocation')
         .select('*')
         .eq('year_id', yr.id)
         .eq('week_number', Number.parseInt(weekNumber))
         .single()
-      setAllocation(data)
+      if (!alloc) return
+      setAllocation(alloc)
+
+      // Pre-load existing plans
+      const { data: plans } = await supabase
+        .from('day_plan')
+        .select('date')
+        .eq('week_allocation_id', alloc.id)
+      setSelected((plans ?? []).map((p) => p.date))
     }
     load()
   }, [weekNumber])
 
-  if (!allocation) return <div className="p-4 text-sm text-stone-500">Hleður...</div>
+  if (!allocation) return <div className="p-4">Hleður...</div>
 
   const days: string[] = []
   const start = new Date(allocation.week_start)
@@ -44,13 +51,13 @@ export default function LosaPage() {
   }
 
   async function handleSubmit() {
-    if (!allocation || selected.length === 0) return
+    if (!allocation) return
     setLoading(true)
-    const result = await releaseDays(allocation.id, selected)
+    const result = await setDayPlans(allocation.id, selected)
     if (result.error) {
       showBanner(result.error, 'error')
     } else {
-      showBanner('Dagar losaðir')
+      showBanner('Dagar staðfestir')
       router.push(`/dagatal/vika/${weekNumber}`)
     }
     setLoading(false)
@@ -58,25 +65,23 @@ export default function LosaPage() {
 
   return (
     <div className="px-4 py-4">
-      <div className="mb-4 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-100"
-        >
-          <ChevronLeft className="h-5 w-5" />
+      <div className="mb-4 flex items-center gap-3">
+        <button type="button" onClick={() => router.back()} className="text-blue-600">
+          ←
         </button>
-        <h1 className="font-semibold text-stone-900">Merkja sem ónýttir — Vika {weekNumber}</h1>
+        <h1 className="font-semibold">Staðfesta nýtingu — Vika {weekNumber}</h1>
       </div>
-      <p className="mb-4 text-sm text-stone-500">Veldu daga til að losa:</p>
+      <p className="mb-4 text-sm text-gray-600">
+        Merktu dagana sem þú ætlar að nota sumarhúsið. Þetta er sýnilegt öllum fjölskyldum.
+      </p>
       <DayPicker days={days} value={selected} onChange={setSelected} />
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={loading || selected.length === 0}
-        className="mt-6 w-full rounded-xl bg-green-700 py-3 text-sm font-medium text-white transition-colors hover:bg-green-800 disabled:opacity-50"
+        disabled={loading}
+        className="mt-6 w-full rounded bg-blue-600 py-3 text-sm font-medium text-white disabled:opacity-50"
       >
-        {loading ? 'Vistar...' : 'Losa valda daga'}
+        {loading ? 'Vistar...' : 'Vista staðfestingar'}
       </button>
     </div>
   )

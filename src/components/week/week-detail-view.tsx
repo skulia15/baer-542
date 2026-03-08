@@ -78,8 +78,8 @@ export function WeekDetailView({
           {!isShared && household && ` — ${household.name}`}
           {isShared &&
             (allocation.type === 'shared_verslunarmannahelgi'
-              ? ' — Sameiginleg (versl.)'
-              : ' — Sameiginleg (vor)')}
+              ? ' — Versló vika'
+              : ' — Vinnuvika')}
         </div>
         <div className="text-sm opacity-90">
           {formatWeekRange(allocation.week_start, allocation.week_end)}
@@ -126,13 +126,13 @@ export function WeekDetailView({
                 href={`/dagatal/vika/${allocation.week_number}/stadfesta`}
                 className="rounded-xl bg-green-700 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-green-800"
               >
-                Staðfesta daga
+                Staðfesta nýtingu
               </Link>
               <Link
                 href={`/dagatal/vika/${allocation.week_number}/losa`}
                 className="rounded-xl border border-stone-200 px-4 py-3 text-center text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
               >
-                Losa daga
+                Merkja sem ónýttir
               </Link>
               <Link
                 href={`/dagatal/vika/${allocation.week_number}/skipti`}
