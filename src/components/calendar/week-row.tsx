@@ -45,8 +45,8 @@ export function WeekRow({
 
   const label = isShared
     ? allocation.type === 'shared_verslunarmannahelgi'
-      ? 'Sameiginleg (versl.)'
-      : 'Sameiginleg (vor)'
+      ? 'Versló vika'
+      : 'Vinnuvika'
     : (household?.name ?? '—')
 
   return (

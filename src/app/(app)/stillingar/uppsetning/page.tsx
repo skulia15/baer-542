@@ -85,7 +85,7 @@ export default function UppsetningPage() {
       </section>
 
       <section className="mb-6">
-        <p className="mb-2 text-sm font-medium text-stone-700">Sameiginleg vika (vor):</p>
+        <p className="mb-2 text-sm font-medium text-stone-700">Vinnuvika:</p>
         <select
           value={springWeek ?? ''}
           onChange={(e) => setSpringWeekState(e.target.value ? Number(e.target.value) : null)}
@@ -116,8 +116,8 @@ export default function UppsetningPage() {
                   {isShared ? (
                     <span className="text-stone-500">
                       {a.type === 'shared_verslunarmannahelgi'
-                        ? 'Sameiginleg (versl.)'
-                        : 'Sameiginleg (vor)'}
+                        ? 'Versló vika'
+                        : 'Vinnuvika'}
                     </span>
                   ) : (
                     <>

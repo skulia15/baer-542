@@ -2,17 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { generateAllocations } from '@/lib/weeks'
-import type { Year, Household } from '@/types/db'
+import type { Household, Year } from '@/types/db'
 
 async function notifyAllUsers(
   supabase: Awaited<ReturnType<typeof createClient>>,
   houseId: string,
   message: string,
 ) {
-  const { data: households } = await supabase
-    .from('household')
-    .select('id')
-    .eq('house_id', houseId)
+  const { data: households } = await supabase.from('household').select('id').eq('house_id', houseId)
 
   if (!households) return
 
@@ -50,13 +47,9 @@ export async function saveRotation(yearId: string, rotationOrder: string[]) {
     .eq('id', user.id)
     .single()
   if (!profile || profile.role !== 'head')
-    return { error: 'Aðeins yfirmenn geta breytt snúningsröð' }
+    return { error: 'Aðeins eigendur geta breytt snúningsröð' }
 
-  const { data: yearRecord } = await supabase
-    .from('year')
-    .select('*')
-    .eq('id', yearId)
-    .single()
+  const { data: yearRecord } = await supabase.from('year').select('*').eq('id', yearId).single()
   if (!yearRecord) return { error: 'Ár ekki fundið' }
 
   const { data: households } = await supabase
@@ -99,11 +92,7 @@ export async function saveRotation(yearId: string, rotationOrder: string[]) {
     .eq('year_id', yearId)
     .in('status', ['pending_own_head', 'pending_other_head'])
 
-  await notifyAllUsers(
-    supabase,
-    yearRecord.house_id,
-    'Snúningsröð ' + yearRecord.year + ' uppfærð',
-  )
+  await notifyAllUsers(supabase, yearRecord.house_id, 'Snúningsröð ' + yearRecord.year + ' uppfærð')
 
   return { success: true }
 }
@@ -116,19 +105,10 @@ export async function setSpringWeek(yearId: string, weekNumber: number | null) {
   } = await supabase.auth.getUser()
   if (!user) return { error: 'Ekki innskráður' }
 
-  const { data: profile } = await supabase
-    .from('profile')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-  if (!profile || profile.role !== 'head')
-    return { error: 'Aðeins yfirmenn geta stillt vorsviku' }
+  const { data: profile } = await supabase.from('profile').select('role').eq('id', user.id).single()
+  if (!profile || profile.role !== 'head') return { error: 'Aðeins eigendur geta stillt vorsviku' }
 
-  const { data: yearRecord } = await supabase
-    .from('year')
-    .select('*')
-    .eq('id', yearId)
-    .single()
+  const { data: yearRecord } = await supabase.from('year').select('*').eq('id', yearId).single()
   if (!yearRecord) return { error: 'Ár ekki fundið' }
 
   const { data: households } = await supabase
@@ -145,10 +125,7 @@ export async function setSpringWeek(yearId: string, weekNumber: number | null) {
     new_value: weekNumber,
   })
 
-  await supabase
-    .from('year')
-    .update({ spring_shared_week_number: weekNumber })
-    .eq('id', yearId)
+  await supabase.from('year').update({ spring_shared_week_number: weekNumber }).eq('id', yearId)
 
   await supabase.from('week_allocation').delete().eq('year_id', yearId)
   const updatedYear: Year = { ...yearRecord, spring_shared_week_number: weekNumber }
@@ -158,7 +135,7 @@ export async function setSpringWeek(yearId: string, weekNumber: number | null) {
   await notifyAllUsers(
     supabase,
     yearRecord.house_id,
-    'Sameiginleg vika (vor) ' + yearRecord.year + ' uppfærð',
+    'Vinnuvika ' + yearRecord.year + ' uppfærð',
   )
 
   return { success: true }
