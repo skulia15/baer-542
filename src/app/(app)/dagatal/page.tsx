@@ -1,7 +1,7 @@
+import { CalendarViewClient } from '@/components/calendar/calendar-view-client'
+import { ActionBar } from '@/components/ui/action-bar'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ActionBar } from '@/components/ui/action-bar'
-import { CalendarViewClient } from '@/components/calendar/calendar-view-client'
 
 export default async function DagatalPage({
   searchParams,
@@ -40,7 +40,10 @@ export default async function DagatalPage({
   const { data: releases } = await supabase
     .from('day_release')
     .select('*')
-    .in('week_allocation_id', (allocations ?? []).map((a) => a.id))
+    .in(
+      'week_allocation_id',
+      (allocations ?? []).map((a) => a.id),
+    )
 
   const { data: households } = await supabase
     .from('household')
@@ -67,8 +70,8 @@ export default async function DagatalPage({
   return (
     <div>
       <div className="sticky top-0 z-10 bg-white">
-        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <h1 className="font-bold">Bær 524</h1>
+        <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
+          <h1 className="font-display text-xl font-semibold text-stone-900">Bær 542</h1>
         </div>
         {profile.role === 'head' && <ActionBar pendingCount={pendingCount} />}
       </div>

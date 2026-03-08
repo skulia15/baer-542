@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function StillingarPage() {
   const supabase = await createClient()
@@ -21,40 +22,40 @@ export default async function StillingarPage() {
 
   return (
     <div>
-      <div className="border-b border-gray-100 px-4 py-3">
-        <h1 className="font-bold">Stillingar</h1>
+      <div className="border-b border-stone-100 px-4 py-3">
+        <h1 className="font-semibold text-stone-900">Stillingar</h1>
       </div>
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-stone-100">
         {isHead && (
           <>
             <Link
               href="/stillingar/uppsetning"
-              className="flex items-center justify-between px-4 py-3"
+              className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-stone-50"
             >
-              <span className="text-sm">Uppsetning árs</span>
-              <span className="text-gray-400">→</span>
+              <span className="text-sm text-stone-800">Uppsetning árs</span>
+              <ChevronRight className="h-4 w-4 text-stone-400" />
             </Link>
             <Link
               href="/stillingar/boda"
-              className="flex items-center justify-between px-4 py-3"
+              className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-stone-50"
             >
-              <span className="text-sm">Bjóða meðlim</span>
-              <span className="text-gray-400">→</span>
+              <span className="text-sm text-stone-800">Bjóða meðlim</span>
+              <ChevronRight className="h-4 w-4 text-stone-400" />
             </Link>
           </>
         )}
         <Link
           href="/stillingar/adgangur"
-          className="flex items-center justify-between px-4 py-3"
+          className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-stone-50"
         >
-          <span className="text-sm">Aðgangur</span>
-          <span className="text-gray-400">→</span>
+          <span className="text-sm text-stone-800">Aðgangur</span>
+          <ChevronRight className="h-4 w-4 text-stone-400" />
         </Link>
       </div>
       <div className="px-4 py-4">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-stone-400">
           {profile.name} · {household?.name} ·{' '}
-          <span className="font-medium">{isHead ? 'Yfirmaður' : 'Meðlimur'}</span>
+          <span className="font-medium">{isHead ? 'Eigandi' : 'Meðlimur'}</span>
         </p>
       </div>
     </div>

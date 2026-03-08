@@ -31,9 +31,10 @@ export function DayPicker({ days, disabledDays = [], onChange, value }: DayPicke
 
   return (
     <div>
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-stone-100">
         {days.map((day) => {
           const disabled = disabledDays.includes(day)
+          const checked = value.includes(day)
           return (
             <label
               key={day}
@@ -41,17 +42,21 @@ export function DayPicker({ days, disabledDays = [], onChange, value }: DayPicke
             >
               <input
                 type="checkbox"
-                checked={value.includes(day)}
+                checked={checked}
                 disabled={disabled}
                 onChange={() => !disabled && toggle(day)}
-                className="h-4 w-4 rounded border-gray-300"
+                className="h-4 w-4 rounded border-stone-300 accent-green-700"
               />
-              <span className="text-sm">{formatDay(new Date(day))}</span>
+              <span className="text-sm text-stone-800">{formatDay(new Date(day))}</span>
             </label>
           )
         })}
       </div>
-      <button type="button" onClick={toggleAll} className="mt-3 text-sm text-blue-600 underline">
+      <button
+        type="button"
+        onClick={toggleAll}
+        className="mt-3 text-sm font-medium text-green-700 underline underline-offset-2"
+      >
         {allSelected ? 'Afvelja alla' : 'Velja alla'}
       </button>
     </div>

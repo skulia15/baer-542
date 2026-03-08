@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { DayPicker } from '@/components/forms/day-picker'
 import { releaseDays } from '@/actions/release'
+import { DayPicker } from '@/components/forms/day-picker'
 import { useBanner } from '@/hooks/use-banner'
 import { createClient } from '@/lib/supabase/client'
-import { addDays } from 'date-fns'
 import type { WeekAllocation } from '@/types/db'
+import { addDays } from 'date-fns'
+import { ChevronLeft } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function LosaPage() {
   const { weekNumber } = useParams<{ weekNumber: string }>()
@@ -34,7 +35,7 @@ export default function LosaPage() {
     load()
   }, [weekNumber])
 
-  if (!allocation) return <div className="p-4">Hleður...</div>
+  if (!allocation) return <div className="p-4 text-sm text-stone-500">Hleður...</div>
 
   const days: string[] = []
   const start = new Date(allocation.week_start)
@@ -57,19 +58,23 @@ export default function LosaPage() {
 
   return (
     <div className="px-4 py-4">
-      <div className="mb-4 flex items-center gap-3">
-        <button type="button" onClick={() => router.back()} className="text-blue-600">
-          ←
+      <div className="mb-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-100"
+        >
+          <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="font-semibold">Losa daga — Vika {weekNumber}</h1>
+        <h1 className="font-semibold text-stone-900">Losa daga — Vika {weekNumber}</h1>
       </div>
-      <p className="mb-4 text-sm text-gray-600">Veldu daga til að losa:</p>
+      <p className="mb-4 text-sm text-stone-500">Veldu daga til að losa:</p>
       <DayPicker days={days} value={selected} onChange={setSelected} />
       <button
         type="button"
         onClick={handleSubmit}
         disabled={loading || selected.length === 0}
-        className="mt-6 w-full rounded bg-blue-600 py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="mt-6 w-full rounded-xl bg-green-700 py-3 text-sm font-medium text-white transition-colors hover:bg-green-800 disabled:opacity-50"
       >
         {loading ? 'Vistar...' : 'Losa valda daga'}
       </button>

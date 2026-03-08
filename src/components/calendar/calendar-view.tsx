@@ -1,9 +1,10 @@
 'use client'
 
+import type { DayRelease, Household, WeekAllocation } from '@/types/db'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect } from 'react'
-import { WeekRow } from './week-row'
 import { HouseholdLegend } from './household-legend'
-import type { WeekAllocation, Household, DayRelease } from '@/types/db'
+import { WeekRow } from './week-row'
 
 interface CalendarViewProps {
   allocations: WeekAllocation[]
@@ -25,9 +26,7 @@ export function CalendarView({
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]
 
-  const currentWeek = allocations.find(
-    (a) => a.week_start <= todayStr && todayStr <= a.week_end,
-  )
+  const currentWeek = allocations.find((a) => a.week_start <= todayStr && todayStr <= a.week_end)
 
   useEffect(() => {
     if (currentWeek) {
@@ -44,17 +43,17 @@ export function CalendarView({
         <button
           type="button"
           onClick={() => onYearChange(year - 1)}
-          className="rounded px-2 py-1 text-gray-600 hover:bg-gray-100"
+          className="rounded-lg p-1.5 text-stone-500 transition-colors hover:bg-stone-100"
         >
-          ◀
+          <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="font-semibold">{year}</span>
+        <span className="font-semibold text-stone-900">{year}</span>
         <button
           type="button"
           onClick={() => onYearChange(year + 1)}
-          className="rounded px-2 py-1 text-gray-600 hover:bg-gray-100"
+          className="rounded-lg p-1.5 text-stone-500 transition-colors hover:bg-stone-100"
         >
-          ▶
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 

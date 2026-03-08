@@ -1,13 +1,15 @@
-import type { WeekAllocation, Household, DayRelease, Profile } from '@/types/db'
-import { formatDay, formatWeekRange } from '@/lib/dates'
 import { getHouseholdStyle } from '@/lib/colors'
-import Link from 'next/link'
+import { formatDay, formatWeekRange } from '@/lib/dates'
+import type { DayPlan, DayRelease, Household, Profile, WeekAllocation } from '@/types/db'
 import { addDays } from 'date-fns'
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
 interface WeekDetailViewProps {
   allocation: WeekAllocation
   household: Household | null
   releases: DayRelease[]
+  plans: DayPlan[]
   profile: Profile
   prevWeek: number | null
   nextWeek: number | null
@@ -17,6 +19,7 @@ export function WeekDetailView({
   allocation,
   household,
   releases,
+  plans,
   profile,
   prevWeek,
   nextWeek,
@@ -34,6 +37,7 @@ export function WeekDetailView({
 
   const releasedDays = new Set(releases.filter((r) => r.status === 'released').map((r) => r.date))
   const claimedDays = new Set(releases.filter((r) => r.status === 'claimed').map((r) => r.date))
+  const plannedDays = new Set(plans.map((p) => p.date))
 
   const barStyle = isShared
     ? { backgroundColor: '#9ca3af', color: '#ffffff' }
@@ -43,19 +47,26 @@ export function WeekDetailView({
 
   return (
     <div>
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <Link href="/dagatal" className="text-blue-600">
-          ← Dagatal
+      <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
+        <Link href="/dagatal" className="flex items-center gap-1 text-sm text-green-700">
+          <ArrowLeft className="h-4 w-4" />
+          Dagatal
         </Link>
-        <div className="flex gap-3">
+        <div className="flex gap-1">
           {prevWeek && (
-            <Link href={`/dagatal/vika/${prevWeek}`} className="text-blue-600">
-              ←
+            <Link
+              href={`/dagatal/vika/${prevWeek}`}
+              className="rounded-lg p-1.5 text-green-700 transition-colors hover:bg-stone-100"
+            >
+              <ChevronLeft className="h-4 w-4" />
             </Link>
           )}
           {nextWeek && (
-            <Link href={`/dagatal/vika/${nextWeek}`} className="text-blue-600">
-              →
+            <Link
+              href={`/dagatal/vika/${nextWeek}`}
+              className="rounded-lg p-1.5 text-green-700 transition-colors hover:bg-stone-100"
+            >
+              <ChevronRight className="h-4 w-4" />
             </Link>
           )}
         </div>
@@ -75,20 +86,33 @@ export function WeekDetailView({
         </div>
       </div>
 
-      <div className="divide-y divide-gray-100 px-4">
+      <div className="divide-y divide-stone-100 px-4">
         {days.map((day) => {
           const dateStr = day.toISOString().split('T')[0]
           const isReleased = releasedDays.has(dateStr)
           const isClaimed = claimedDays.has(dateStr)
+          const isPlanned = plannedDays.has(dateStr)
+
+          let statusLabel: string
+          let statusColor: string
+          if (isClaimed) {
+            statusLabel = 'Krafist'
+            statusColor = 'text-green-700'
+          } else if (isReleased) {
+            statusLabel = 'Losað'
+            statusColor = 'text-orange-600'
+          } else if (isPlanned) {
+            statusLabel = 'Staðfest'
+            statusColor = 'text-green-600'
+          } else {
+            statusLabel = 'Úthlutað'
+            statusColor = 'text-stone-400'
+          }
 
           return (
             <div key={dateStr} className="flex items-center justify-between py-2.5">
-              <span className="text-sm">{formatDay(day)}</span>
-              <span
-                className={`text-xs ${isClaimed ? 'text-green-600' : isReleased ? 'text-orange-600' : 'text-gray-500'}`}
-              >
-                {isClaimed ? 'Krafist' : isReleased ? 'Losað' : 'Úthlutað'}
-              </span>
+              <span className="text-sm text-stone-800">{formatDay(day)}</span>
+              <span className={`text-xs font-medium ${statusColor}`}>{statusLabel}</span>
             </div>
           )
         })}
@@ -99,26 +123,40 @@ export function WeekDetailView({
           {isOwn && (
             <>
               <Link
+                href={`/dagatal/vika/${allocation.week_number}/stadfesta`}
+                className="rounded-xl bg-green-700 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-green-800"
+              >
+                Staðfesta daga
+              </Link>
+              <Link
                 href={`/dagatal/vika/${allocation.week_number}/losa`}
-                className="rounded bg-blue-600 px-4 py-3 text-center text-sm font-medium text-white"
+                className="rounded-xl border border-stone-200 px-4 py-3 text-center text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
               >
                 Losa daga
               </Link>
               <Link
                 href={`/dagatal/vika/${allocation.week_number}/skipti`}
-                className="rounded border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700"
+                className="rounded-xl border border-stone-200 px-4 py-3 text-center text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
               >
                 Leggja til skipti
               </Link>
             </>
           )}
-          {!isOwn && releasedDays.size > 0 && (
-            <Link
-              href={`/dagatal/vika/${allocation.week_number}/bidni`}
-              className="rounded bg-blue-600 px-4 py-3 text-center text-sm font-medium text-white"
-            >
-              Óska eftir völdum dögum
-            </Link>
+          {!isOwn && (
+            <>
+              <Link
+                href={`/dagatal/vika/${allocation.week_number}/bidni`}
+                className="rounded-xl bg-green-700 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-green-800"
+              >
+                Óska eftir dögum
+              </Link>
+              <Link
+                href={`/dagatal/vika/${allocation.week_number}/skipti`}
+                className="rounded-xl border border-stone-200 px-4 py-3 text-center text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+              >
+                Leggja til skipti
+              </Link>
+            </>
           )}
         </div>
       )}

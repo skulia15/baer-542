@@ -1,23 +1,24 @@
 'use client'
 
+import type { Household } from '@/types/db'
 import {
   DndContext,
-  closestCenter,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
-  type DragEndEvent,
 } from '@dnd-kit/core'
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
   arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Household } from '@/types/db'
+import { GripVertical } from 'lucide-react'
 
 interface RotationSorterProps {
   households: Household[]
@@ -39,20 +40,20 @@ function SortableItem({ household, index }: { household: Household; index: numbe
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 rounded border border-gray-200 bg-white px-3 py-2.5 shadow-sm"
+      className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-3 py-3 shadow-sm"
     >
       <span
         {...attributes}
         {...listeners}
-        className="cursor-grab text-gray-400 active:cursor-grabbing"
+        className="cursor-grab text-stone-300 active:cursor-grabbing"
       >
-        ☰
+        <GripVertical className="h-4 w-4" />
       </span>
       <span
         className="h-4 w-4 flex-shrink-0 rounded-full"
         style={{ backgroundColor: household.color }}
       />
-      <span className="text-sm font-medium">
+      <span className="text-sm font-medium text-stone-800">
         {index + 1}. {household.name}
       </span>
     </div>

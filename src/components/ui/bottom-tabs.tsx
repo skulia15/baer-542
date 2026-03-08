@@ -1,5 +1,6 @@
 'use client'
 
+import { Bell, CalendarDays, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -11,29 +12,29 @@ export function BottomTabs({ unreadCount }: BottomTabsProps) {
   const pathname = usePathname()
 
   const tabs = [
-    { href: '/dagatal', label: 'Dagatal', icon: '📅' },
-    { href: '/tilkynningar', label: 'Tilkynningar', icon: '🔔' },
-    { href: '/stillingar', label: 'Stillingar', icon: '⚙️' },
+    { href: '/dagatal', label: 'Dagatal', Icon: CalendarDays },
+    { href: '/tilkynningar', label: 'Tilkynningar', Icon: Bell },
+    { href: '/stillingar', label: 'Stillingar', Icon: Settings },
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-stone-200 bg-white">
       <div className="mx-auto flex max-w-[430px] items-center justify-around">
-        {tabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.href)
-          const isNotif = tab.href === '/tilkynningar'
+        {tabs.map(({ href, label, Icon }) => {
+          const isActive = pathname.startsWith(href)
+          const isNotif = href === '/tilkynningar'
           return (
             <Link
-              key={tab.href}
-              href={tab.href}
-              className={`relative flex flex-1 flex-col items-center py-2 text-xs ${
-                isActive ? 'text-blue-600' : 'text-gray-500'
+              key={href}
+              href={href}
+              className={`relative flex flex-1 flex-col items-center gap-0.5 py-3 text-xs font-medium transition-colors ${
+                isActive ? 'text-green-700' : 'text-stone-400'
               }`}
             >
-              <span className="text-xl leading-none">{tab.icon}</span>
-              <span className="mt-0.5">{tab.label}</span>
+              <Icon className="h-5 w-5" strokeWidth={isActive ? 2 : 1.5} />
+              <span>{label}</span>
               {isNotif && unreadCount > 0 && (
-                <span className="absolute right-4 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                <span className="absolute right-4 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}

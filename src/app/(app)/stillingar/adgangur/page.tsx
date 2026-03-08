@@ -1,7 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { logout } from '@/actions/auth'
+import { createClient } from '@/lib/supabase/server'
+import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function AdgangurPage() {
   const supabase = await createClient()
@@ -22,31 +23,39 @@ export default async function AdgangurPage() {
 
   return (
     <div className="px-4 py-4">
-      <div className="mb-4 flex items-center gap-3">
-        <Link href="/stillingar" className="text-blue-600">
-          ←
+      <div className="mb-4 flex items-center gap-2">
+        <Link
+          href="/stillingar"
+          className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-100"
+        >
+          <ChevronLeft className="h-5 w-5" />
         </Link>
-        <h1 className="font-semibold">Aðgangur</h1>
+        <h1 className="font-semibold text-stone-900">Aðgangur</h1>
       </div>
-      <div className="mb-6 space-y-2 rounded border border-gray-200 p-4">
+      <div className="mb-6 space-y-2 rounded-xl border border-stone-200 p-4">
         <p className="text-sm">
-          <span className="text-gray-500">Nafn:</span> {profile.name}
+          <span className="text-stone-400">Nafn:</span>{' '}
+          <span className="text-stone-800">{profile.name}</span>
         </p>
         <p className="text-sm">
-          <span className="text-gray-500">Netfang:</span> {profile.email}
+          <span className="text-stone-400">Netfang:</span>{' '}
+          <span className="text-stone-800">{profile.email}</span>
         </p>
         <p className="text-sm">
-          <span className="text-gray-500">Fjölskylda:</span> {household?.name ?? '—'}
+          <span className="text-stone-400">Fjölskylda:</span>{' '}
+          <span className="text-stone-800">{household?.name ?? '—'}</span>
         </p>
         <p className="text-sm">
-          <span className="text-gray-500">Hlutverk:</span>{' '}
-          {profile.role === 'head' ? 'Yfirmaður' : 'Meðlimur'}
+          <span className="text-stone-400">Hlutverk:</span>{' '}
+          <span className="font-medium text-stone-800">
+            {profile.role === 'head' ? 'Eigandi' : 'Meðlimur'}
+          </span>
         </p>
       </div>
       <form action={logout}>
         <button
           type="submit"
-          className="w-full rounded border border-red-300 py-3 text-sm font-medium text-red-600"
+          className="w-full rounded-xl border border-red-200 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
         >
           Skrá út
         </button>

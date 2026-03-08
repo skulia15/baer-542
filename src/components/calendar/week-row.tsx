@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
-import type { WeekAllocation, Household, DayRelease } from '@/types/db'
-import { getHouseholdStyle, getHouseholdFadedStyle } from '@/lib/colors'
+import { getHouseholdFadedStyle, getHouseholdStyle } from '@/lib/colors'
 import { formatWeekRange } from '@/lib/dates'
+import type { DayRelease, Household, WeekAllocation } from '@/types/db'
+import Link from 'next/link'
 
 interface WeekRowProps {
   allocation: WeekAllocation
@@ -56,25 +56,25 @@ export function WeekRow({
         className={`mb-1 cursor-pointer ${isPast ? 'opacity-50' : ''}`}
       >
         <div
-          className={`relative rounded px-3 py-2 ${isCurrentWeek ? 'ring-2 ring-gray-800 ring-offset-1' : ''}`}
+          className={`relative rounded-lg px-3 py-2.5 ${isCurrentWeek ? 'ring-2 ring-stone-800 ring-offset-1' : ''}`}
           style={barStyle}
         >
           {isOwn && !isShared && (
             <div
-              className="absolute bottom-0 left-0 top-0 w-1 rounded-l"
+              className="absolute bottom-0 left-0 top-0 w-1 rounded-l-lg"
               style={{ backgroundColor: household ? darkenColor(household.color) : '#000' }}
             />
           )}
           <div className="flex items-center justify-between pl-2">
             <div>
-              <div className="text-xs font-medium">
+              <div className="text-xs font-semibold">
                 V.{allocation.week_number}{' '}
                 {formatWeekRange(allocation.week_start, allocation.week_end)}
               </div>
-              <div className="text-xs opacity-90">{label}</div>
+              <div className="text-xs opacity-80">{label}</div>
             </div>
             {(isFullyReleased || isPartiallyReleased) && !isShared && (
-              <span className="ml-2 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold">
+              <span className="ml-2 rounded-md bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">
                 Losað
               </span>
             )}

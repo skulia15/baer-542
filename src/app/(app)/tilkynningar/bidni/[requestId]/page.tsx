@@ -1,11 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { formatDay } from '@/lib/dates'
 import { ApproveDeclineForm } from '@/components/forms/approve-decline-form'
+import { formatDay } from '@/lib/dates'
+import { createClient } from '@/lib/supabase/server'
+import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 const STATUS_LABELS: Record<string, string> = {
-  pending_own_head: 'Bíður samþykkis eigin yfirmanns',
+  pending_own_head: 'Bíður samþykkis eigin eiganda',
   pending_releasing_head: 'Bíður samþykkis losandi fjölskyldu',
   approved: 'Samþykkt',
   declined: 'Hafnað',
@@ -24,11 +25,7 @@ export default async function BidniDetailPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profile')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const { data: profile } = await supabase.from('profile').select('*').eq('id', user.id).single()
   const { data: request } = await supabase
     .from('request')
     .select(
@@ -51,26 +48,29 @@ export default async function BidniDetailPage({
 
   return (
     <div className="px-4 py-4">
-      <div className="mb-4 flex items-center gap-3">
-        <Link href="/tilkynningar" className="text-blue-600">
-          ←
+      <div className="mb-4 flex items-center gap-2">
+        <Link
+          href="/tilkynningar"
+          className="rounded-lg p-1 text-stone-500 transition-colors hover:bg-stone-100"
+        >
+          <ChevronLeft className="h-5 w-5" />
         </Link>
-        <h1 className="font-semibold">Beiðni</h1>
+        <h1 className="font-semibold text-stone-900">Beiðni</h1>
       </div>
 
-      <div className="mb-4 rounded border border-gray-200 p-4">
-        <p className="mb-2 text-sm font-medium">
+      <div className="mb-4 rounded-xl border border-stone-200 p-4">
+        <p className="mb-2 text-sm font-medium text-stone-800">
           {requestingHousehold.name} óskar eftir dögum í viku {allocation.week_number}
           {allocation.household && ` (${allocation.household.name})`}:
         </p>
         <ul className="mb-3 space-y-1">
           {request.requested_days.map((d: string) => (
-            <li key={d} className="text-sm">
+            <li key={d} className="text-sm text-stone-700">
               {formatDay(new Date(d))}
             </li>
           ))}
         </ul>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-stone-400">
           Staða: {STATUS_LABELS[request.status] ?? request.status}
         </p>
         {request.decline_reason && (
