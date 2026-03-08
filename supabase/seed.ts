@@ -1,0 +1,99 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { autoRefreshToken: false, persistSession: false },
+})
+
+const HOUSEHOLDS = [
+  { name: 'Arnar', color: '#22c55e' },
+  { name: 'Maggi', color: '#3b82f6' },
+  { name: 'Keddi', color: '#f97316' },
+  { name: 'Óli', color: '#a855f7' },
+  { name: 'Sigurjón', color: '#ef4444' },
+]
+
+// Replace these with real emails before running
+const HEAD_EMAILS = [
+  'arnar@example.com',
+  'maggi@example.com',
+  'keddi@example.com',
+  'oli@example.com',
+  'sigurjon@example.com',
+]
+
+async function seed() {
+  console.log('Seeding...')
+
+  // Create house
+  const { data: house, error: houseErr } = await supabase
+    .from('house')
+    .insert({ name: 'Bær 524' })
+    .select()
+    .single()
+  if (houseErr) throw houseErr
+  console.log('House created:', house.id)
+
+  // Create households
+  const householdRows = []
+  for (const h of HOUSEHOLDS) {
+    const { data, error } = await supabase
+      .from('household')
+      .insert({ house_id: house.id, name: h.name, color: h.color })
+      .select()
+      .single()
+    if (error) throw error
+    householdRows.push(data)
+    console.log(`Household ${h.name}:`, data.id)
+  }
+
+  // Create head users
+  for (let i = 0; i < HOUSEHOLDS.length; i++) {
+    const email = HEAD_EMAILS[i]
+    const household = householdRows[i]
+
+    const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { needs_password_reset: true },
+    })
+    if (authErr) throw authErr
+
+    const { error: profileErr } = await supabase.from('profile').insert({
+      id: authUser.user.id,
+      email,
+      name: HOUSEHOLDS[i].name,
+      household_id: household.id,
+      role: 'head',
+    })
+    if (profileErr) {
+      await supabase.auth.admin.deleteUser(authUser.user.id)
+      throw profileErr
+    }
+
+    console.log(`Head ${HOUSEHOLDS[i].name} (${email}):`, authUser.user.id)
+  }
+
+  // Create year record for current year
+  const currentYear = new Date().getFullYear()
+  const { data: yearRecord, error: yearErr } = await supabase
+    .from('year')
+    .insert({
+      house_id: house.id,
+      year: currentYear,
+      rotation_order: householdRows.map((h) => h.id),
+    })
+    .select()
+    .single()
+  if (yearErr) throw yearErr
+  console.log(`Year ${currentYear}:`, yearRecord.id)
+
+  console.log('Seed complete!')
+}
+
+seed().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})
