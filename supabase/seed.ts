@@ -1,3 +1,6 @@
+// Load .env.local regardless of how the script is invoked
+process.loadEnvFile('.env.local')
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
