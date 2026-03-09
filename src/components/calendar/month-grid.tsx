@@ -167,6 +167,15 @@ export function MonthGrid({
                   </div>
                 )}
 
+                {/* Released (free) indicator */}
+                {isReleased && !claimedByHousehold && !isShared && (
+                  <div className="mt-auto pt-0.5 text-center">
+                    <span className="text-[8px] font-semibold leading-none text-stone-400">
+                      laust
+                    </span>
+                  </div>
+                )}
+
                 {/* Bottom strip for claimed days (claiming household's color) */}
                 {claimedByHousehold && (
                   <div
@@ -175,8 +184,17 @@ export function MonthGrid({
                   />
                 )}
 
+                {/* Claimed indicator label */}
+                {claimedByHousehold && (
+                  <div className="mt-auto pt-0.5 text-center">
+                    <span className="text-[8px] font-semibold leading-none" style={{ color: claimedByHousehold.color }}>
+                      tekið
+                    </span>
+                  </div>
+                )}
+
                 {/* Swap indicator */}
-                {isSwapped && (
+                {isSwapped && !claimedByHousehold && !isReleased && (
                   <div className="absolute bottom-0.5 right-0.5 text-[8px] leading-none text-stone-400 font-medium">
                     ↔
                   </div>

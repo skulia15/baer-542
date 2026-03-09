@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { CalendarDays, ChevronRight, KeyRound, Phone, UserPlus } from 'lucide-react'
+import { CalendarDays, ChevronRight, KeyRound, Phone, Settings, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
@@ -19,6 +19,7 @@ export default async function StillingarPage() {
 
   const household = profile.household as { name: string; color: string } | null
   const isHead = profile.role === 'head'
+  const isAdmin = profile.email === process.env.ADMIN_EMAIL
 
   return (
     <div>
@@ -60,6 +61,18 @@ export default async function StillingarPage() {
           </span>
           <ChevronRight className="h-4 w-4 text-stone-400" />
         </Link>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-stone-50"
+          >
+            <span className="flex items-center gap-3 text-sm text-stone-800">
+              <Settings className="h-4 w-4 text-stone-400" />
+              Admin
+            </span>
+            <ChevronRight className="h-4 w-4 text-stone-400" />
+          </Link>
+        )}
         <Link
           href="/stillingar/adgangur"
           className="flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-stone-50"
