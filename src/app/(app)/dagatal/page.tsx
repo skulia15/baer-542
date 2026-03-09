@@ -71,7 +71,7 @@ export default async function DagatalPage({
     <div>
       <div className="sticky top-0 z-10 bg-white">
         <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-          <h1 className="font-display text-xl font-semibold text-stone-900">Bær 542</h1>
+          <h1 className="font-display text-xl font-semibold text-stone-900">Bær 524</h1>
         </div>
         {profile.role === 'head' && <ActionBar pendingCount={pendingCount} />}
       </div>
