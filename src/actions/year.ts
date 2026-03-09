@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { generateAllocations } from '@/lib/weeks'
 import type { Household, Year } from '@/types/db'
 import { revalidatePath } from 'next/cache'
@@ -73,11 +74,13 @@ export async function saveRotation(yearId: string, rotationOrder: string[]) {
     .eq('id', yearId)
   if (updateErr) return { error: updateErr.message }
 
-  // Must delete referencing rows first — request and swap_proposal have non-cascading FKs to week_allocation
-  await supabase.from('swap_proposal').delete().eq('year_id', yearId)
-  await supabase.from('request').delete().eq('year_id', yearId)
+  // Must delete referencing rows first — request and swap_proposal have non-cascading FKs to week_allocation.
+  // No RLS delete policy exists on these tables so service client is required.
+  const service = createServiceClient()
+  await service.from('swap_proposal').delete().eq('year_id', yearId)
+  await service.from('request').delete().eq('year_id', yearId)
 
-  const { error: deleteErr } = await supabase.from('week_allocation').delete().eq('year_id', yearId)
+  const { error: deleteErr } = await service.from('week_allocation').delete().eq('year_id', yearId)
   if (deleteErr) return { error: deleteErr.message }
 
   const updatedYear: Year = { ...yearRecord, rotation_order: rotationOrder }
@@ -122,12 +125,13 @@ export async function setSpringWeek(yearId: string, weekNumber: number | null) {
 
   await supabase.from('year').update({ spring_shared_week_number: weekNumber }).eq('id', yearId)
 
-  await supabase.from('swap_proposal').delete().eq('year_id', yearId)
-  await supabase.from('request').delete().eq('year_id', yearId)
-  await supabase.from('week_allocation').delete().eq('year_id', yearId)
+  const service = createServiceClient()
+  await service.from('swap_proposal').delete().eq('year_id', yearId)
+  await service.from('request').delete().eq('year_id', yearId)
+  await service.from('week_allocation').delete().eq('year_id', yearId)
   const updatedYear: Year = { ...yearRecord, spring_shared_week_number: weekNumber }
   const allocations = generateAllocations(updatedYear, households as Household[])
-  await supabase.from('week_allocation').insert(allocations)
+  await service.from('week_allocation').insert(allocations)
 
   await notifyAllUsers(
     supabase,
