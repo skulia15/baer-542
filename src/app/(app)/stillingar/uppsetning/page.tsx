@@ -19,6 +19,7 @@ export default function UppsetningPage() {
   const [order, setOrder] = useState<string[]>([])
   const [springWeek, setSpringWeekState] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -137,14 +138,41 @@ export default function UppsetningPage() {
         </section>
       )}
 
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={loading || order.length === 0}
-        className="w-full rounded-xl bg-green-700 py-3 text-sm font-medium text-white transition-colors hover:bg-green-800 disabled:opacity-50"
-      >
-        {loading ? 'Vistar...' : 'Vista'}
-      </button>
+      {confirming ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="mb-1 text-sm font-semibold text-amber-900">Ertu viss?</p>
+          <p className="mb-4 text-xs text-amber-800">
+            Allar skipti- og dagabeiðnir, staðfestar losanir og ónotaðar dagar verða fjarlægðar þegar
+            uppsetning er vistuð.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              className="flex-1 rounded-lg border border-stone-200 bg-white py-2.5 text-sm font-medium text-stone-700"
+            >
+              Hætta við
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={loading}
+              className="flex-1 rounded-lg bg-green-700 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {loading ? 'Vistar...' : 'Já, vista'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          disabled={order.length === 0}
+          className="w-full rounded-xl bg-green-700 py-3 text-sm font-medium text-white transition-colors hover:bg-green-800 disabled:opacity-50"
+        >
+          Vista
+        </button>
+      )}
     </div>
   )
 }
