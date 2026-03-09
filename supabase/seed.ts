@@ -3,8 +3,8 @@ process.loadEnvFile('.env.local')
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -12,10 +12,10 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 })
 
 const HOUSEHOLDS = [
-  { name: 'Arnar', color: '#00966e' },   // jade
-  { name: 'Maggi', color: '#2060c8' },   // cobalt blue
-  { name: 'Keddi', color: '#e8900a' },   // saffron
-  { name: 'Óli', color: '#7030c0' },     // violet
+  { name: 'Arnar', color: '#00966e' }, // jade
+  { name: 'Maggi', color: '#2060c8' }, // cobalt blue
+  { name: 'Ketill', color: '#e8900a' }, // saffron
+  { name: 'Óli', color: '#7030c0' }, // violet
   { name: 'Sigurjón', color: '#d82828' }, // scarlet
 ]
 
@@ -23,7 +23,7 @@ const HOUSEHOLDS = [
 const HEAD_EMAILS = [
   'arnar@example.com',
   'maggi@example.com',
-  'keddi@example.com',
+  'ketill@example.com',
   'oli@example.com',
   'sigurjon@example.com',
 ]
@@ -98,7 +98,12 @@ async function seed() {
     .insert({
       house_id: house.id,
       year: currentYear,
-      rotation_order: householdRows.map((h) => h.id),
+      // Rotation: Ketill owns current week (week 10, 2026); index 9 % 5 = 4 → Ketill at position 4
+      rotation_order: ['Maggi', 'Sigurjón', 'Arnar', 'Óli', 'Ketill'].map((name) => {
+        const row = householdRows.find((h) => h.name === name)
+        if (!row) throw new Error(`Household not found: ${name}`)
+        return row.id
+      }),
     })
     .select()
     .single()
