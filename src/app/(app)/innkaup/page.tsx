@@ -52,7 +52,7 @@ export default async function InnkaupPage() {
           )}
         </div>
       </div>
-      <ShoppingListClient items={typedItems} userId={user.id} />
+      <ShoppingListClient items={typedItems} />
     </div>
   )
 }

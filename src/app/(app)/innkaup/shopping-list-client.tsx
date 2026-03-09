@@ -1,6 +1,7 @@
 'use client'
 
 import { addShoppingItem, deleteShoppingItem, markAsBought } from '@/actions/shopping'
+import { formatRelativeTime } from '@/lib/dates'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -13,7 +14,7 @@ type ItemWithJoins = {
   bought_by_household: { name: string } | null
 }
 
-export function ShoppingListClient({ items, userId }: { items: ItemWithJoins[]; userId: string }) {
+export function ShoppingListClient({ items }: { items: ItemWithJoins[] }) {
   const router = useRouter()
   const [newItem, setNewItem] = useState('')
   const [adding, setAdding] = useState(false)
@@ -118,21 +119,18 @@ export function ShoppingListClient({ items, userId }: { items: ItemWithJoins[]; 
               <div key={item.id} className="flex items-center gap-3 px-4 py-3 opacity-60">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-stone-500 line-through">{item.name}</p>
-                  {item.bought_by_household && (
-                    <p className="text-xs text-stone-400">
-                      Keypt af: {item.bought_by_household.name}
-                    </p>
-                  )}
+                  <p className="text-xs text-stone-400">
+                    {item.bought_by_household ? `Keypt af: ${item.bought_by_household.name} · ` : ''}
+                    {item.bought_at ? formatRelativeTime(item.bought_at) : ''}
+                  </p>
                 </div>
-                {item.created_by === userId && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    className="shrink-0 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100"
-                  >
-                    Eyða
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(item.id)}
+                  className="shrink-0 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100"
+                >
+                  Eyða
+                </button>
               </div>
             ))}
           </div>

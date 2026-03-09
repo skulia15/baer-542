@@ -65,15 +65,7 @@ export async function deleteShoppingItem(
   } = await supabase.auth.getUser()
   if (!user) return { error: 'Ekki innskráður' }
 
-  const { data: profile } = await supabase.from('profile').select('role').eq('id', user.id).single()
-  if (!profile) return { error: 'Prófíll ekki fundinn' }
-
-  let query = supabase.from('shopping_item').delete().eq('id', id)
-  if (profile.role !== 'head') {
-    query = query.eq('created_by', user.id)
-  }
-
-  const { error } = await query
+  const { error } = await supabase.from('shopping_item').delete().eq('id', id)
   if (error) return { error: error.message }
   return { success: true }
 }

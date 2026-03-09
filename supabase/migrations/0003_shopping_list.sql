@@ -13,4 +13,4 @@ ALTER TABLE shopping_item ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "auth users read shopping" ON shopping_item FOR SELECT TO authenticated USING (true);
 CREATE POLICY "auth users insert shopping" ON shopping_item FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "auth users update shopping" ON shopping_item FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "auth users delete shopping" ON shopping_item FOR DELETE TO authenticated USING (created_by = auth.uid());
+CREATE POLICY "auth users delete shopping" ON shopping_item FOR DELETE TO authenticated USING (true);
