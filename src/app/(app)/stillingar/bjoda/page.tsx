@@ -55,7 +55,7 @@ export default function BodaPage() {
         <h1 className="font-semibold text-stone-900">Bjóða notanda</h1>
       </div>
       <p className="mb-4 text-sm text-stone-500">
-        Búðu til boðshlekkur sem gildir í 7 daga. Sendið hlekk í tölvupósti eða síma.
+        Búðu til boðshlekk sem gildir í 7 daga. Sendu hlekk í tölvupósti eða síma.
       </p>
       <button
         type="button"
@@ -63,7 +63,7 @@ export default function BodaPage() {
         disabled={loading || !householdId}
         className="w-full rounded-xl bg-green-700 py-3 text-sm font-medium text-white transition-colors hover:bg-green-800 disabled:opacity-50"
       >
-        {loading ? 'Bý til...' : 'Búa til boðshlekkur'}
+        {loading ? 'Bý til...' : 'Búa til boðshlekk'}
       </button>
       {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       {inviteUrl && (
@@ -79,7 +79,7 @@ export default function BodaPage() {
             onClick={() => navigator.clipboard.writeText(inviteUrl)}
             className="mt-2 text-sm font-medium text-green-700 underline underline-offset-2"
           >
-            Afrita hlekkur
+            Afrita hlekk
           </button>
         </div>
       )}

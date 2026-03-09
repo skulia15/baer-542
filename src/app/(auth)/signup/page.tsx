@@ -11,7 +11,9 @@ function SignupForm() {
   const [loading, setLoading] = useState(false)
 
   if (!token) {
-    return <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Ógilt boðshlekkur.</p>
+    return (
+      <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">Ógildur boðshlekkur.</p>
+    )
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -34,7 +36,9 @@ function SignupForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-stone-700">Nafn</label>
+        <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-stone-700">
+          Nafn
+        </label>
         <input
           name="name"
           type="text"
@@ -43,7 +47,9 @@ function SignupForm() {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-stone-700">Netfang</label>
+        <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-stone-700">
+          Netfang
+        </label>
         <input
           name="email"
           type="email"
@@ -52,7 +58,9 @@ function SignupForm() {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-stone-700">Lykilorð</label>
+        <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-stone-700">
+          Lykilorð
+        </label>
         <input
           name="password"
           type="password"
@@ -81,7 +89,7 @@ export default function SignupPage() {
           <h1 className="font-display text-3xl font-semibold tracking-tight text-stone-900">
             Bær 542
           </h1>
-          <p className="mt-1 text-sm text-stone-500">Skráðu þig inn</p>
+          <p className="mt-1 text-sm text-stone-500">Stofnaðu aðgang</p>
         </div>
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
           <Suspense fallback={<p className="text-sm text-stone-400">Hleður...</p>}>

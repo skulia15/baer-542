@@ -134,7 +134,7 @@ export function WeekDetailView({
                 className="flex items-center justify-center gap-2 rounded-xl border border-stone-200 px-4 py-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
               >
                 <CalendarX className="h-4 w-4" />
-                Merkja sem ónýttir
+                Merkja sem ónýtta
               </Link>
               <Link
                 href={`/dagatal/vika/${allocation.week_number}/skipti`}

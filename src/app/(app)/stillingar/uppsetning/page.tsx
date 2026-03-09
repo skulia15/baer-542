@@ -116,15 +116,13 @@ export default function UppsetningPage() {
                   <span className="w-8 text-stone-400">V.{a.week_number}</span>
                   {isShared ? (
                     <span className="text-stone-500">
-                      {a.type === 'shared_verslunarmannahelgi'
-                        ? 'Versló vika'
-                        : 'Vinnuvika'}
+                      {a.type === 'shared_verslunarmannahelgi' ? 'Versló vika' : 'Vinnuvika'}
                     </span>
                   ) : (
                     <>
                       {hh && (
                         <span
-                          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
                           style={{ backgroundColor: hh.color }}
                         />
                       )}
@@ -142,8 +140,8 @@ export default function UppsetningPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="mb-1 text-sm font-semibold text-amber-900">Ertu viss?</p>
           <p className="mb-4 text-xs text-amber-800">
-            Allar skipti- og dagabeiðnir, staðfestar losanir og ónotaðar dagar verða fjarlægðar þegar
-            uppsetning er vistuð.
+            Allar skipti- og dagabeiðnir, staðfestir notkunardagar og ónotaðir dagar verða
+            fjarlægðir þegar uppsetningu ársins er breytt.
           </p>
           <div className="flex gap-2">
             <button
