@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, CalendarDays, Settings } from 'lucide-react'
+import { Bell, CalendarDays, Settings, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -14,6 +14,7 @@ export function BottomTabs({ unreadCount }: BottomTabsProps) {
   const tabs = [
     { href: '/dagatal', label: 'Dagatal', Icon: CalendarDays },
     { href: '/tilkynningar', label: 'Tilkynningar', Icon: Bell },
+    { href: '/innkaup', label: 'Innkaup', Icon: ShoppingCart },
     { href: '/stillingar', label: 'Stillingar', Icon: Settings },
   ]
 

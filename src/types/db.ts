@@ -129,6 +129,17 @@ export interface DayPlan {
   created_at: string
 }
 
+export interface ShoppingItem {
+  id: string
+  house_id: string
+  name: string
+  reported_by_household_id: string | null
+  created_by: string
+  created_at: string
+  bought_at: string | null
+  bought_by_household_id: string | null
+}
+
 // Joined types
 export interface WeekAllocationWithHousehold extends WeekAllocation {
   household: Household | null
