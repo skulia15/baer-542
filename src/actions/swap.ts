@@ -77,14 +77,16 @@ export async function createSwap(
 
     if (otherHead) {
       const message = `Skiptatillaga fyrir viku ${allocationA.week_number} / ${allocationB.week_number}`
-      await createServiceClient().from('notification').insert({
-        user_id: otherHead.id,
-        type: 'swap_received' as const,
-        reference_id: swap.id,
-        reference_type: 'swap_proposal',
-        message,
-        read: false,
-      })
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: otherHead.id,
+          type: 'swap_received' as const,
+          reference_id: swap.id,
+          reference_type: 'swap_proposal',
+          message,
+          read: false,
+        })
       void sendEmail(otherHead.email, 'Skiptatillaga móttekin', emailHtml(message, senderMessage))
     }
   } else {
@@ -96,16 +98,22 @@ export async function createSwap(
       .single()
 
     if (ownHead) {
-      const message = 'Meðlimur sendi skiptatillögu – bíður samþykkis'
-      await createServiceClient().from('notification').insert({
-        user_id: ownHead.id,
-        type: 'member_action_pending' as const,
-        reference_id: swap.id,
-        reference_type: 'swap_proposal',
-        message,
-        read: false,
-      })
-      void sendEmail(ownHead.email, 'Meðlimur bíður samþykkis', emailHtml(message, senderMessage))
+      const message = 'Fjölskyldumeðlimur sendi skiptatillögu – bíður samþykkis'
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: ownHead.id,
+          type: 'member_action_pending' as const,
+          reference_id: swap.id,
+          reference_type: 'swap_proposal',
+          message,
+          read: false,
+        })
+      void sendEmail(
+        ownHead.email,
+        'Fjölskyldumeðlimur bíður samþykkis',
+        emailHtml(message, senderMessage),
+      )
     }
   }
 
@@ -146,14 +154,16 @@ export async function approveSwap(swapId: string) {
 
     if (otherHead) {
       const message = 'Skiptatillaga bíður samþykkis þíns'
-      await createServiceClient().from('notification').insert({
-        user_id: otherHead.id,
-        type: 'swap_received' as const,
-        reference_id: swapId,
-        reference_type: 'swap_proposal',
-        message,
-        read: false,
-      })
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: otherHead.id,
+          type: 'swap_received' as const,
+          reference_id: swapId,
+          reference_type: 'swap_proposal',
+          message,
+          read: false,
+        })
       void sendEmail(otherHead.email, 'Skiptatillaga bíður samþykkis þíns', emailHtml(message))
     }
 
@@ -194,14 +204,16 @@ export async function approveSwap(swapId: string) {
       .eq('id', swapId)
 
     const message = 'Skiptatillaga þín var samþykkt'
-    await createServiceClient().from('notification').insert({
-      user_id: swap.created_by,
-      type: 'swap_resolved' as const,
-      reference_id: swapId,
-      reference_type: 'swap_proposal',
-      message,
-      read: false,
-    })
+    await createServiceClient()
+      .from('notification')
+      .insert({
+        user_id: swap.created_by,
+        type: 'swap_resolved' as const,
+        reference_id: swapId,
+        reference_type: 'swap_proposal',
+        message,
+        read: false,
+      })
 
     const { data: creator } = await supabase
       .from('profile')
@@ -256,14 +268,16 @@ export async function declineSwap(swapId: string, reason?: string) {
     .in('status', ['pending_own_head', 'pending_other_head'])
 
   const declineMessage = reason ? `Skiptatillögu hafnað: ${reason}` : 'Skiptatillögu hafnað'
-  await createServiceClient().from('notification').insert({
-    user_id: swap.created_by,
-    type: 'swap_resolved' as const,
-    reference_id: swapId,
-    reference_type: 'swap_proposal',
-    message: declineMessage,
-    read: false,
-  })
+  await createServiceClient()
+    .from('notification')
+    .insert({
+      user_id: swap.created_by,
+      type: 'swap_resolved' as const,
+      reference_id: swapId,
+      reference_type: 'swap_proposal',
+      message: declineMessage,
+      read: false,
+    })
 
   const { data: creator } = await supabase
     .from('profile')

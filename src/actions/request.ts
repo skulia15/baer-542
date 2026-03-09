@@ -10,7 +10,11 @@ function emailHtml(message: string, senderMessage?: string | null) {
   return `<p>Bær 524: ${message}</p>${senderMessage ? `<p><em>"${senderMessage}"</em></p>` : ''}<p><a href="${APP_URL}">Opna app</a></p>`
 }
 
-export async function createRequest(targetAllocationId: string, requestedDays: string[], senderMessage?: string) {
+export async function createRequest(
+  targetAllocationId: string,
+  requestedDays: string[],
+  senderMessage?: string,
+) {
   const supabase = await createClient()
 
   const {
@@ -60,14 +64,16 @@ export async function createRequest(targetAllocationId: string, requestedDays: s
 
     if (releasingHead) {
       const message = `Beiðni um daga í viku ${allocation.week_number}`
-      await createServiceClient().from('notification').insert({
-        user_id: releasingHead.id,
-        type: 'request_received' as const,
-        reference_id: request.id,
-        reference_type: 'request',
-        message,
-        read: false,
-      })
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: releasingHead.id,
+          type: 'request_received' as const,
+          reference_id: request.id,
+          reference_type: 'request',
+          message,
+          read: false,
+        })
       void sendEmail(releasingHead.email, 'Beiðni um daga', emailHtml(message))
     }
   } else {
@@ -79,16 +85,22 @@ export async function createRequest(targetAllocationId: string, requestedDays: s
       .single()
 
     if (ownHead) {
-      const message = 'Meðlimur sendi beiðni – bíður samþykkis'
-      await createServiceClient().from('notification').insert({
-        user_id: ownHead.id,
-        type: 'member_action_pending' as const,
-        reference_id: request.id,
-        reference_type: 'request',
-        message,
-        read: false,
-      })
-      void sendEmail(ownHead.email, 'Meðlimur bíður samþykkis', emailHtml(message, senderMessage))
+      const message = 'Fjölskyldumeðlimur sendi beiðni – bíður samþykkis'
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: ownHead.id,
+          type: 'member_action_pending' as const,
+          reference_id: request.id,
+          reference_type: 'request',
+          message,
+          read: false,
+        })
+      void sendEmail(
+        ownHead.email,
+        'Fjölskyldumeðlimur bíður samþykkis',
+        emailHtml(message, senderMessage),
+      )
     }
   }
 
@@ -112,7 +124,9 @@ export async function approveRequest(requestId: string) {
 
   const { data: request } = await supabase
     .from('request')
-    .select('*, sender_message, allocation:target_week_allocation_id(household_id, week_number, year_id)')
+    .select(
+      '*, sender_message, allocation:target_week_allocation_id(household_id, week_number, year_id)',
+    )
     .eq('id', requestId)
     .single()
   if (!request) return { error: 'Beiðni ekki fundin' }
@@ -139,15 +153,21 @@ export async function approveRequest(requestId: string) {
 
     if (releasingHead) {
       const message = `Beiðni um daga í viku ${allocation.week_number}`
-      await createServiceClient().from('notification').insert({
-        user_id: releasingHead.id,
-        type: 'request_received' as const,
-        reference_id: requestId,
-        reference_type: 'request',
-        message,
-        read: false,
-      })
-      void sendEmail(releasingHead.email, 'Beiðni um daga', emailHtml(message, request.sender_message))
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: releasingHead.id,
+          type: 'request_received' as const,
+          reference_id: requestId,
+          reference_type: 'request',
+          message,
+          read: false,
+        })
+      void sendEmail(
+        releasingHead.email,
+        'Beiðni um daga',
+        emailHtml(message, request.sender_message),
+      )
     }
 
     return { success: true }
@@ -204,34 +224,37 @@ export async function approveRequest(requestId: string) {
 
       const userIds = conflicting.map((r) => r.created_by)
       if (userIds.length > 0) {
-        await createServiceClient().from('notification').insert(
-          userIds.map((uid) => ({
-            user_id: uid,
-            type: 'auto_cancelled' as const,
-            message: 'Beiðni þín var sjálfkrafa afturkölluð vegna annars samþykkis',
-            read: false,
-          })),
-        )
+        await createServiceClient()
+          .from('notification')
+          .insert(
+            userIds.map((uid) => ({
+              user_id: uid,
+              type: 'auto_cancelled' as const,
+              message: 'Beiðni þín var sjálfkrafa afturkölluð vegna annars samþykkis',
+              read: false,
+            })),
+          )
       }
     }
 
     const approveMessage = 'Beiðni þín var samþykkt'
-    await createServiceClient().from('notification').insert({
-      user_id: request.created_by,
-      type: 'request_resolved' as const,
-      reference_id: requestId,
-      reference_type: 'request',
-      message: approveMessage,
-      read: false,
-    })
+    await createServiceClient()
+      .from('notification')
+      .insert({
+        user_id: request.created_by,
+        type: 'request_resolved' as const,
+        reference_id: requestId,
+        reference_type: 'request',
+        message: approveMessage,
+        read: false,
+      })
 
     const { data: creator } = await supabase
       .from('profile')
       .select('email')
       .eq('id', request.created_by)
       .single()
-    if (creator)
-      void sendEmail(creator.email, 'Beiðni þín samþykkt', emailHtml(approveMessage))
+    if (creator) void sendEmail(creator.email, 'Beiðni þín samþykkt', emailHtml(approveMessage))
 
     return { success: true }
   }
@@ -256,14 +279,15 @@ export async function declineRequest(requestId: string, reason?: string) {
 
   const { data: request } = await supabase
     .from('request')
-    .select('created_by, requesting_household_id, allocation:target_week_allocation_id(household_id)')
+    .select(
+      'created_by, requesting_household_id, allocation:target_week_allocation_id(household_id)',
+    )
     .eq('id', requestId)
     .single()
   if (!request) return { error: 'Beiðni ekki fundin' }
 
-  const releasingHouseholdId = (
-    request.allocation as unknown as { household_id: string } | null
-  )?.household_id
+  const releasingHouseholdId = (request.allocation as unknown as { household_id: string } | null)
+    ?.household_id
   if (
     profile.household_id !== request.requesting_household_id &&
     profile.household_id !== releasingHouseholdId
@@ -282,14 +306,16 @@ export async function declineRequest(requestId: string, reason?: string) {
     .in('status', ['pending_own_head', 'pending_releasing_head'])
 
   const declineMessage = reason ? `Beiðni hafnað: ${reason}` : 'Beiðni hafnað'
-  await createServiceClient().from('notification').insert({
-    user_id: request.created_by,
-    type: 'request_resolved' as const,
-    reference_id: requestId,
-    reference_type: 'request',
-    message: declineMessage,
-    read: false,
-  })
+  await createServiceClient()
+    .from('notification')
+    .insert({
+      user_id: request.created_by,
+      type: 'request_resolved' as const,
+      reference_id: requestId,
+      reference_type: 'request',
+      message: declineMessage,
+      read: false,
+    })
 
   const { data: creator } = await supabase
     .from('profile')

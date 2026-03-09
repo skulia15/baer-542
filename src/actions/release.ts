@@ -56,16 +56,18 @@ export async function releaseDays(weekAllocationId: string, dates: string[]) {
         )
 
       if (profiles) {
-        await createServiceClient().from('notification').insert(
-          profiles.map((p) => ({
-            user_id: p.id,
-            type: 'release' as const,
-            reference_id: weekAllocationId,
-            reference_type: 'week_allocation',
-            message: `${dates.length} dagur/dagar losaðir í viku ${allocation.week_number}`,
-            read: false,
-          })),
-        )
+        await createServiceClient()
+          .from('notification')
+          .insert(
+            profiles.map((p) => ({
+              user_id: p.id,
+              type: 'release' as const,
+              reference_id: weekAllocationId,
+              reference_type: 'week_allocation',
+              message: `${dates.length} dagur/dagar losaðir í viku ${allocation.week_number}`,
+              read: false,
+            })),
+          )
       }
     }
 
@@ -89,12 +91,14 @@ export async function releaseDays(weekAllocationId: string, dates: string[]) {
       .single()
 
     if (headProfile) {
-      await createServiceClient().from('notification').insert({
-        user_id: headProfile.id,
-        type: 'member_action_pending' as const,
-        message: 'Meðlimur óskar eftir að losa daga – bíður samþykkis',
-        read: false,
-      })
+      await createServiceClient()
+        .from('notification')
+        .insert({
+          user_id: headProfile.id,
+          type: 'member_action_pending' as const,
+          message: 'Fjölskyldumeðlimur óskar eftir að losa daga – bíður samþykkis',
+          read: false,
+        })
     }
 
     return { success: true }

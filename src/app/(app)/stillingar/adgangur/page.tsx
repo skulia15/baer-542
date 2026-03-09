@@ -53,7 +53,7 @@ export default async function AdgangurPage() {
         <p className="text-sm">
           <span className="text-stone-400">Hlutverk:</span>{' '}
           <span className="font-medium text-stone-800">
-            {profile.role === 'head' ? 'Eigandi' : 'Meðlimur'}
+            {profile.role === 'head' ? 'Eigandi' : 'Fjölskyldumeðlimur'}
           </span>
         </p>
         <div className="text-sm">

@@ -49,7 +49,9 @@ export function AdminClient({ profiles, households }: Props) {
               {emailPending ? 'Sendir…' : 'Prófa tölvupóst'}
             </button>
             {emailStatus && (
-              <span className={`text-xs ${emailStatus === 'Sent!' ? 'text-green-600' : 'text-red-600'}`}>
+              <span
+                className={`text-xs ${emailStatus === 'Sent!' ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {emailStatus}
               </span>
             )}
@@ -91,7 +93,7 @@ export function AdminClient({ profiles, households }: Props) {
               <span className="flex-1 font-medium text-stone-900">{p.name}</span>
               <span className="text-sm text-stone-500">{p.email}</span>
               <span className="ml-2 rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
-                {p.role === 'head' ? 'Eigandi' : 'Meðlimur'}
+                {p.role === 'head' ? 'Eigandi' : 'Fjölskyldumeðlimur'}
               </span>
             </button>
 
@@ -188,7 +190,7 @@ function CreateUserForm({
         </Field>
         <Field label="Hlutverk">
           <select name="role" value={form.role} onChange={handleChange} className={inputCls}>
-            <option value="member">Meðlimur</option>
+            <option value="member">Fjölskyldumeðlimur</option>
             <option value="head">Eigandi</option>
           </select>
         </Field>
@@ -244,7 +246,7 @@ function UserEditPanel({
           label="Breyta hlutverki"
           value={user.role}
           options={[
-            { value: 'member', label: 'Meðlimur' },
+            { value: 'member', label: 'Fjölskyldumeðlimur' },
             { value: 'head', label: 'Eigandi' },
           ]}
           onSave={async (v) => adminUpdateRole(user.id, v as 'head' | 'member')}
