@@ -24,7 +24,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="font-display text-4xl font-semibold tracking-tight text-stone-900">
-            Bær 542
+            Bær 524
           </h1>
           <p className="mt-1.5 text-sm text-stone-500">Bæjardagatal</p>
         </div>

@@ -87,7 +87,7 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-stone-900">
-            Bær 542
+            Bær 524
           </h1>
           <p className="mt-1 text-sm text-stone-500">Stofnaðu aðgang</p>
         </div>
