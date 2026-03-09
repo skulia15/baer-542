@@ -25,7 +25,7 @@ async function notifyAllUsers(
 
   if (!profiles) return
 
-  await supabase.from('notification').insert(
+  await createServiceClient().from('notification').insert(
     profiles.map((p) => ({
       user_id: p.id,
       type: 'allocation_changed' as const,

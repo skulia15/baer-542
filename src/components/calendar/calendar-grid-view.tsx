@@ -6,12 +6,20 @@ import type { Holiday } from 'fridagar'
 import { useMemo } from 'react'
 import { MonthGrid } from './month-grid'
 
+interface ApprovedSwap {
+  allocation_a_id: string
+  allocation_b_id: string
+  household_a_id: string
+  household_b_id: string
+}
+
 interface Props {
   allocations: WeekAllocation[]
   releases: DayRelease[]
   households: Household[]
   currentHouseholdId: string
   year: number
+  approvedSwaps: ApprovedSwap[]
 }
 
 export function CalendarGridView({
@@ -20,9 +28,14 @@ export function CalendarGridView({
   households,
   currentHouseholdId,
   year,
+  approvedSwaps,
 }: Props) {
   const todayStr = new Date().toISOString().split('T')[0]
   const householdMap = useMemo(() => new Map(households.map((h) => [h.id, h])), [households])
+  const swappedAllocIds = useMemo(
+    () => new Set(approvedSwaps.flatMap((s) => [s.allocation_a_id, s.allocation_b_id])),
+    [approvedSwaps],
+  )
 
   const holidayMap = useMemo(() => {
     const holidays = getHolidays(year) as Holiday[]
@@ -51,6 +64,7 @@ export function CalendarGridView({
           currentHouseholdId={currentHouseholdId}
           holidayMap={holidayMap}
           todayStr={todayStr}
+          swappedAllocIds={swappedAllocIds}
         />
       ))}
     </div>

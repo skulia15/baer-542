@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 const STATUS_LABELS: Record<string, string> = {
   pending_own_head: 'Bíður samþykkis eigin eiganda',
   pending_releasing_head: 'Bíður samþykkis losandi fjölskyldu',
-  pending_other_head: 'Bíður samþykkis annarrar fjölskyldu',
+  pending_other_head: 'Bíður samþykkis',
 }
 
 function getNotifHref(n: Notification): string {
@@ -48,7 +48,7 @@ export default async function TilkynningarPage() {
       ? supabase
           .from('swap_proposal')
           .select(
-            'id, status, household_a:household_a_id(name), household_b:household_b_id(name), allocation_a:allocation_a_id(week_number), allocation_b:allocation_b_id(week_number)',
+            'id, status, household_a_id, household_b_id, household_a:household_a_id(name), household_b:household_b_id(name), allocation_a:allocation_a_id(week_number), allocation_b:allocation_b_id(week_number)',
           )
           .or(`household_a_id.eq.${hhId},household_b_id.eq.${hhId}`)
           .in('status', ['pending_own_head', 'pending_other_head'])
@@ -87,32 +87,63 @@ export default async function TilkynningarPage() {
         </div>
       )}
 
-      {(mySwaps ?? []).length > 0 && (
-        <div className="border-b border-stone-100">
-          <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
-            Mín skipti
-          </p>
-          <div className="divide-y divide-stone-100">
-            {(mySwaps ?? []).map((s) => {
-              const hhA = s.household_a as unknown as { name: string } | null
-              const hhB = s.household_b as unknown as { name: string } | null
-              const allocA = s.allocation_a as unknown as { week_number: number } | null
-              const allocB = s.allocation_b as unknown as { week_number: number } | null
-              return (
-                <Link key={s.id} href={`/tilkynningar/skipti/${s.id}`}>
-                  <div className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-stone-50">
-                    <p className="text-sm text-stone-800">
-                      V.{allocA?.week_number} ({hhA?.name}) ↔ V.{allocB?.week_number} ({hhB?.name})
-                    </p>
-                    <p className="text-xs text-stone-400">{STATUS_LABELS[s.status] ?? s.status}</p>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      {(() => {
+        const incomingSwaps = (mySwaps ?? []).filter(
+          (s) =>
+            (s as unknown as { household_b_id: string }).household_b_id === hhId &&
+            s.status === 'pending_other_head',
+        )
+        const outgoingSwaps = (mySwaps ?? []).filter(
+          (s) =>
+            (s as unknown as { household_a_id: string }).household_a_id === hhId ||
+            s.status !== 'pending_other_head',
+        )
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const renderSwapRow = (s: any) => {
+          const hhA = s.household_a as unknown as { name: string } | null
+          const hhB = s.household_b as unknown as { name: string } | null
+          const allocA = s.allocation_a as unknown as { week_number: number } | null
+          const allocB = s.allocation_b as unknown as { week_number: number } | null
+          return (
+            <Link key={s.id} href={`/tilkynningar/skipti/${s.id}`}>
+              <div className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-stone-50">
+                <p className="text-sm text-stone-800">
+                  V.{allocA?.week_number} ({hhA?.name}) ↔ V.{allocB?.week_number} ({hhB?.name})
+                </p>
+                <p className="text-xs text-stone-400">{STATUS_LABELS[s.status] ?? s.status}</p>
+              </div>
+            </Link>
+          )
+        }
+
+        return (
+          <>
+            {incomingSwaps.length > 0 && (
+              <div className="border-b border-stone-100">
+                <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                  Skiptatillögur til mín
+                </p>
+                <div className="divide-y divide-stone-100">{incomingSwaps.map(renderSwapRow)}</div>
+              </div>
+            )}
+            {outgoingSwaps.length > 0 && (
+              <div className="border-b border-stone-100">
+                <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                  Mín skipti
+                </p>
+                <div className="divide-y divide-stone-100">{outgoingSwaps.map(renderSwapRow)}</div>
+              </div>
+            )}
+          </>
+        )
+      })()}
+
+      {(notifications ?? []).length > 0 && (
+        <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+          Tilkynningar
+        </p>
+      )}
       <div className="divide-y divide-stone-100">
         {(notifications ?? []).length === 0 && (myRequests ?? []).length === 0 && (mySwaps ?? []).length === 0 && (
           <p className="px-4 py-8 text-center text-sm text-stone-400">Engar tilkynningar</p>

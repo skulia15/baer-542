@@ -23,6 +23,7 @@ export default function SkiptiPage() {
   const [allocBId, setAllocBId] = useState('')
   const [daysA, setDaysA] = useState<string[]>([])
   const [daysB, setDaysB] = useState<string[]>([])
+  const [senderMessage, setSenderMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
 
@@ -88,7 +89,7 @@ export default function SkiptiPage() {
   async function handleSubmit() {
     if (!allocAId || !allocBId || daysA.length === 0 || daysB.length === 0) return
     setLoading(true)
-    const result = await createSwap(allocAId, daysA, allocBId, daysB)
+    const result = await createSwap(allocAId, daysA, allocBId, daysB, senderMessage || undefined)
     if (result.error) {
       showBanner(result.error, 'error')
     } else {
@@ -148,6 +149,13 @@ export default function SkiptiPage() {
         )}
       </section>
 
+      <textarea
+        value={senderMessage}
+        onChange={(e) => setSenderMessage(e.target.value)}
+        placeholder="Skilaboð (valkvætt)..."
+        rows={3}
+        className="mb-4 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+      />
       <button
         type="button"
         onClick={handleSubmit}

@@ -91,6 +91,11 @@ export default async function SkiptiDetailPage({
             </p>
           ))}
         </div>
+        {swap.sender_message && (
+          <p className="mb-3 rounded-lg bg-stone-50 px-3 py-2 text-sm italic text-stone-600">
+            "{swap.sender_message}"
+          </p>
+        )}
         <p className="text-xs text-stone-400">Staða: {STATUS_LABELS[swap.status] ?? swap.status}</p>
         {swap.decline_reason && (
           <p className="mt-1 text-xs text-red-600">Ástæða: {swap.decline_reason}</p>

@@ -36,6 +36,7 @@ interface Props {
   currentHouseholdId: string
   holidayMap: Map<string, Holiday>
   todayStr: string
+  swappedAllocIds: Set<string>
 }
 
 export function MonthGrid({
@@ -47,6 +48,7 @@ export function MonthGrid({
   currentHouseholdId,
   holidayMap,
   todayStr,
+  swappedAllocIds,
 }: Props) {
   // Build day cells for this month
   const firstDay = new Date(year, month - 1, 1)
@@ -73,6 +75,11 @@ export function MonthGrid({
   }
 
   const releasedDays = new Set(releases.filter((r) => r.status === 'released').map((r) => r.date))
+  const claimedDayMap = new Map(
+    releases
+      .filter((r) => r.status === 'claimed' && r.claimed_by_household_id)
+      .map((r) => [r.date, r.claimed_by_household_id as string]),
+  )
 
   return (
     <div className="mb-6">
@@ -105,15 +112,24 @@ export function MonthGrid({
           const isPast = ds < todayStr
           const isOwn = allocation?.household_id === currentHouseholdId
           const holiday = holidayMap.get(ds)
+          const isSwapped = allocation ? swappedAllocIds.has(allocation.id) : false
+
+          const claimedByHouseholdId = claimedDayMap.get(ds)
+          const claimedByHousehold = claimedByHouseholdId
+            ? (householdMap.get(claimedByHouseholdId) ?? null)
+            : null
+          const claimedRgb = claimedByHousehold ? hexToRgb(claimedByHousehold.color) : null
 
           const rgb = household ? hexToRgb(household.color) : null
           const bgColor = isShared
             ? 'rgba(156,163,175,0.15)'
-            : rgb
-              ? isReleased
-                ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.12)`
-                : `rgba(${rgb.r},${rgb.g},${rgb.b},0.2)`
-              : 'white'
+            : claimedRgb
+              ? `rgba(${claimedRgb.r},${claimedRgb.g},${claimedRgb.b},0.2)`
+              : rgb
+                ? isReleased
+                  ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.12)`
+                  : `rgba(${rgb.r},${rgb.g},${rgb.b},0.2)`
+                : 'white'
 
           const accentColor = isShared ? '#9ca3af' : (household?.color ?? null)
 
@@ -148,6 +164,21 @@ export function MonthGrid({
                 {holiday && (
                   <div className="mt-0.5 text-[9px] leading-tight text-center text-amber-700 font-medium truncate px-0.5">
                     {holiday.description}
+                  </div>
+                )}
+
+                {/* Bottom strip for claimed days (claiming household's color) */}
+                {claimedByHousehold && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{ backgroundColor: claimedByHousehold.color }}
+                  />
+                )}
+
+                {/* Swap indicator */}
+                {isSwapped && (
+                  <div className="absolute bottom-0.5 right-0.5 text-[8px] leading-none text-stone-400 font-medium">
+                    ↔
                   </div>
                 )}
               </div>

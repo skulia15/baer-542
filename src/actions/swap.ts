@@ -2,11 +2,12 @@
 
 import { sendEmail } from '@/lib/email'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 const APP_URL = 'https://baer524.vercel.app/dagatal'
 
-function emailHtml(message: string) {
-  return `<p>Bær 524: ${message}</p><p><a href="${APP_URL}">Opna app</a></p>`
+function emailHtml(message: string, senderMessage?: string | null) {
+  return `<p>Bær 524: ${message}</p>${senderMessage ? `<p><em>"${senderMessage}"</em></p>` : ''}<p><a href="${APP_URL}">Opna app</a></p>`
 }
 
 export async function createSwap(
@@ -14,6 +15,7 @@ export async function createSwap(
   daysA: string[],
   allocationBId: string,
   daysB: string[],
+  senderMessage?: string,
 ) {
   const supabase = await createClient()
 
@@ -59,6 +61,7 @@ export async function createSwap(
       days_b: daysB,
       status,
       created_by: user.id,
+      sender_message: senderMessage ?? null,
     })
     .select()
     .single()
@@ -74,7 +77,7 @@ export async function createSwap(
 
     if (otherHead) {
       const message = `Skiptatillaga fyrir viku ${allocationA.week_number} / ${allocationB.week_number}`
-      await supabase.from('notification').insert({
+      await createServiceClient().from('notification').insert({
         user_id: otherHead.id,
         type: 'swap_received' as const,
         reference_id: swap.id,
@@ -82,7 +85,7 @@ export async function createSwap(
         message,
         read: false,
       })
-      void sendEmail(otherHead.email, 'Skiptatillaga móttekin', emailHtml(message))
+      void sendEmail(otherHead.email, 'Skiptatillaga móttekin', emailHtml(message, senderMessage))
     }
   } else {
     const { data: ownHead } = await supabase
@@ -94,7 +97,7 @@ export async function createSwap(
 
     if (ownHead) {
       const message = 'Meðlimur sendi skiptatillögu – bíður samþykkis'
-      await supabase.from('notification').insert({
+      await createServiceClient().from('notification').insert({
         user_id: ownHead.id,
         type: 'member_action_pending' as const,
         reference_id: swap.id,
@@ -102,7 +105,7 @@ export async function createSwap(
         message,
         read: false,
       })
-      void sendEmail(ownHead.email, 'Meðlimur bíður samþykkis', emailHtml(message))
+      void sendEmail(ownHead.email, 'Meðlimur bíður samþykkis', emailHtml(message, senderMessage))
     }
   }
 
@@ -143,7 +146,7 @@ export async function approveSwap(swapId: string) {
 
     if (otherHead) {
       const message = 'Skiptatillaga bíður samþykkis þíns'
-      await supabase.from('notification').insert({
+      await createServiceClient().from('notification').insert({
         user_id: otherHead.id,
         type: 'swap_received' as const,
         reference_id: swapId,
@@ -191,7 +194,7 @@ export async function approveSwap(swapId: string) {
       .eq('id', swapId)
 
     const message = 'Skiptatillaga þín var samþykkt'
-    await supabase.from('notification').insert({
+    await createServiceClient().from('notification').insert({
       user_id: swap.created_by,
       type: 'swap_resolved' as const,
       reference_id: swapId,
@@ -253,7 +256,7 @@ export async function declineSwap(swapId: string, reason?: string) {
     .in('status', ['pending_own_head', 'pending_other_head'])
 
   const declineMessage = reason ? `Skiptatillögu hafnað: ${reason}` : 'Skiptatillögu hafnað'
-  await supabase.from('notification').insert({
+  await createServiceClient().from('notification').insert({
     user_id: swap.created_by,
     type: 'swap_resolved' as const,
     reference_id: swapId,

@@ -16,6 +16,7 @@ export default function BidniPage() {
   const { showBanner } = useBanner()
   const [allocation, setAllocation] = useState<WeekAllocation | null>(null)
   const [selected, setSelected] = useState<string[]>([])
+  const [senderMessage, setSenderMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function BidniPage() {
   async function handleSubmit() {
     if (!allocation || selected.length === 0) return
     setLoading(true)
-    const result = await createRequest(allocation.id, selected)
+    const result = await createRequest(allocation.id, selected, senderMessage || undefined)
     if (result.error) {
       showBanner(result.error, 'error')
     } else {
@@ -71,6 +72,13 @@ export default function BidniPage() {
       </div>
       <p className="mb-4 text-sm text-stone-500">Veldu daga sem þú óskar eftir:</p>
       <DayPicker days={allDays} value={selected} onChange={setSelected} />
+      <textarea
+        value={senderMessage}
+        onChange={(e) => setSenderMessage(e.target.value)}
+        placeholder="Skilaboð (valkvætt)..."
+        rows={3}
+        className="mt-4 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-green-700"
+      />
       <button
         type="button"
         onClick={handleSubmit}

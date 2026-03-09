@@ -7,6 +7,13 @@ import { CalendarGridView } from './calendar-grid-view'
 import { HouseholdLegend } from './household-legend'
 import { WeekRow } from './week-row'
 
+interface ApprovedSwap {
+  allocation_a_id: string
+  allocation_b_id: string
+  household_a_id: string
+  household_b_id: string
+}
+
 interface CalendarViewProps {
   allocations: WeekAllocation[]
   releases: DayRelease[]
@@ -14,6 +21,7 @@ interface CalendarViewProps {
   currentHouseholdId: string
   year: number
   onYearChange: (year: number) => void
+  approvedSwaps: ApprovedSwap[]
 }
 
 export function CalendarView({
@@ -23,6 +31,7 @@ export function CalendarView({
   currentHouseholdId,
   year,
   onYearChange,
+  approvedSwaps,
 }: CalendarViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
   const today = new Date()
@@ -95,6 +104,7 @@ export function CalendarView({
           households={households}
           currentHouseholdId={currentHouseholdId}
           year={year}
+          approvedSwaps={approvedSwaps}
         />
       ) : (
         <div className="px-3 pb-20 pt-2">
@@ -108,6 +118,27 @@ export function CalendarView({
               const isCurrent = currentWeek?.id === allocation.id
               const isOwn = allocation.household_id === currentHouseholdId
 
+              const swap = approvedSwaps.find(
+                (s) => s.allocation_a_id === allocation.id || s.allocation_b_id === allocation.id,
+              )
+              const swappedFrom = swap
+                ? swap.allocation_a_id === allocation.id
+                  ? (householdMap.get(swap.household_a_id) ?? null)
+                  : (householdMap.get(swap.household_b_id) ?? null)
+                : null
+
+              const claimedHouseholdIds = [
+                ...new Set(
+                  weekReleases
+                    .filter((r) => r.status === 'claimed' && r.claimed_by_household_id)
+                    .map((r) => r.claimed_by_household_id as string),
+                ),
+              ]
+              const claimedByHousehold =
+                claimedHouseholdIds.length === 1
+                  ? (householdMap.get(claimedHouseholdIds[0]) ?? null)
+                  : null
+
               return (
                 <WeekRow
                   key={allocation.id}
@@ -117,6 +148,8 @@ export function CalendarView({
                   isOwn={isOwn}
                   isPast={false}
                   isCurrentWeek={isCurrent}
+                  swappedFrom={swappedFrom}
+                  claimedByHousehold={claimedByHousehold}
                 />
               )
             })}

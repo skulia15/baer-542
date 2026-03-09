@@ -12,6 +12,8 @@ interface WeekRowProps {
   isOwn: boolean
   isPast: boolean
   isCurrentWeek: boolean
+  swappedFrom?: Household | null
+  claimedByHousehold?: Household | null
 }
 
 function darkenColor(hex: string): string {
@@ -29,6 +31,8 @@ export function WeekRow({
   isOwn,
   isPast,
   isCurrentWeek,
+  swappedFrom = null,
+  claimedByHousehold = null,
 }: WeekRowProps) {
   const availableCount = releases.filter((r) => r.status === 'released').length
   const claimedCount = releases.filter((r) => r.status === 'claimed').length
@@ -76,6 +80,9 @@ export function WeekRow({
                 {formatWeekRange(allocation.week_start, allocation.week_end)}
               </div>
               <div className="text-xs opacity-80">{label}</div>
+              {swappedFrom && !isShared && (
+                <div className="text-[10px] opacity-60 mt-0.5">↔ Skipti frá {swappedFrom.name}</div>
+              )}
             </div>
             {(isFullyReleased || isPartiallyReleased) && !isShared && isOwn && (
               <span className="ml-2 rounded-md bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">
@@ -89,7 +96,7 @@ export function WeekRow({
             )}
             {claimedCount > 0 && !isShared && !isOwn && !hasAvailable && (
               <span className="ml-2 rounded-md bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">
-                Tekið
+                {claimedByHousehold ? `Tekið – ${claimedByHousehold.name}` : 'Tekið'}
               </span>
             )}
           </div>

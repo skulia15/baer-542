@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 export async function releaseDays(weekAllocationId: string, dates: string[]) {
   const supabase = await createClient()
@@ -55,7 +56,7 @@ export async function releaseDays(weekAllocationId: string, dates: string[]) {
         )
 
       if (profiles) {
-        await supabase.from('notification').insert(
+        await createServiceClient().from('notification').insert(
           profiles.map((p) => ({
             user_id: p.id,
             type: 'release' as const,
@@ -88,7 +89,7 @@ export async function releaseDays(weekAllocationId: string, dates: string[]) {
       .single()
 
     if (headProfile) {
-      await supabase.from('notification').insert({
+      await createServiceClient().from('notification').insert({
         user_id: headProfile.id,
         type: 'member_action_pending' as const,
         message: 'Meðlimur óskar eftir að losa daga – bíður samþykkis',

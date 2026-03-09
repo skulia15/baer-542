@@ -79,6 +79,11 @@ export default async function BidniDetailPage({
             </li>
           ))}
         </ul>
+        {request.sender_message && (
+          <p className="mb-3 rounded-lg bg-stone-50 px-3 py-2 text-sm italic text-stone-600">
+            "{request.sender_message}"
+          </p>
+        )}
         <p className="text-xs text-stone-400">
           Staða: {STATUS_LABELS[request.status] ?? request.status}
         </p>
