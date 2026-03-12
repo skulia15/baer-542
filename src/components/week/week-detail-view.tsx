@@ -119,7 +119,7 @@ export function WeekDetailView({
             statusLabel = 'Krafist'
             statusColor = 'text-green-700'
           } else if (isReleased) {
-            statusLabel = 'Losað'
+            statusLabel = 'Dagur laus / í boði'
             statusColor = 'text-orange-600'
           } else if (isPlanned) {
             statusLabel = 'Staðfest'
