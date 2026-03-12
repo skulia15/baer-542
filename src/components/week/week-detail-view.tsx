@@ -2,6 +2,7 @@ import { getHouseholdStyle } from '@/lib/colors'
 import { formatDay, formatWeekRange } from '@/lib/dates'
 import type { DayPlan, DayRelease, Household, Profile, WeekAllocation } from '@/types/db'
 import { addDays } from 'date-fns'
+import { RetractDayButton } from './retract-day-button'
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -54,6 +55,7 @@ export function WeekDetailView({
 
   const releasedDays = new Set(releases.filter((r) => r.status === 'released').map((r) => r.date))
   const claimedDays = new Set(releases.filter((r) => r.status === 'claimed').map((r) => r.date))
+  const releasedDayIds = new Map(releases.filter((r) => r.status === 'released').map((r) => [r.date, r.id]))
   const plannedDays = new Set(plans.map((p) => p.date))
 
   const barStyle = isShared
@@ -130,7 +132,12 @@ export function WeekDetailView({
             <div key={dateStr} className="py-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-stone-800">{formatDay(day)}</span>
-                <span className={`text-xs font-medium ${statusColor}`}>{statusLabel}</span>
+                <div className="flex items-center gap-2">
+                  {isOwn && isReleased && !isPast && releasedDayIds.get(dateStr) && (
+                    <RetractDayButton dayReleaseId={releasedDayIds.get(dateStr)!} />
+                  )}
+                  <span className={`text-xs font-medium ${statusColor}`}>{statusLabel}</span>
+                </div>
               </div>
               {transfer && (
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-stone-500">
