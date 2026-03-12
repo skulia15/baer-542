@@ -34,7 +34,7 @@ export async function releaseDays(weekAllocationId: string, dates: string[]) {
     return { error: 'Aðeins eigendur geta losað daga' }
   }
 
-  const { error } = await supabase.from('day_release').insert(
+  const { error } = await createServiceClient().from('day_release').insert(
     dates.map((date) => ({
       week_allocation_id: weekAllocationId,
       date,
@@ -149,7 +149,7 @@ export async function retractRelease(dayReleaseIds: string[]) {
   )
   if (!allOwned) return { error: 'Þetta eru ekki þínir dagar' }
 
-  const { error } = await supabase.from('day_release').delete().in('id', dayReleaseIds)
+  const { error } = await createServiceClient().from('day_release').delete().in('id', dayReleaseIds)
 
   if (error) return { error: error.message }
   return { success: true }
