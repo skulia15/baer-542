@@ -90,6 +90,11 @@ export default async function BidniDetailPage({
         {request.decline_reason && (
           <p className="mt-1 text-xs text-red-600">Ástæða: {request.decline_reason}</p>
         )}
+        {request.status === 'cancelled' && !request.decline_reason && (
+          <p className="mt-1 text-xs text-stone-500">
+            Beiðni var sjálfkrafa afturkölluð þar sem önnur beiðni fékk samþykki á þessum dögum.
+          </p>
+        )}
       </div>
 
       {canApprove && <ApproveDeclineForm type="request" id={requestId} />}
