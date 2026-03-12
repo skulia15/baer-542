@@ -146,7 +146,7 @@ export function CalendarView({
                   household={household}
                   releases={weekReleases}
                   isOwn={isOwn}
-                  isPast={false}
+                  isPast={allocation.week_end < todayStr}
                   isCurrentWeek={isCurrent}
                   swappedFrom={swappedFrom}
                   claimedByHousehold={claimedByHousehold}
