@@ -1,8 +1,12 @@
 import { addDays, getDay, startOfYear, getYear, format } from 'date-fns'
 import type { WeekAllocation, Year, Household } from '@/types/db'
 
-// Set to false to revert to unattributed shared weeks (original behaviour).
-export const SHARED_WEEK_HAS_OWNER = true
+// Spring/work week: attributed to the household whose rotation slot it falls on.
+// Rotation advances (the household sacrifices their regular slot).
+export const SPRING_WEEK_HAS_OWNER = true
+
+// Verslunarmannahelgi: no owner, rotation pauses (index does not advance).
+export const VERSLUNAR_WEEK_HAS_OWNER = false
 
 export interface Week {
   week_number: number
@@ -75,15 +79,16 @@ export function generateAllocations(
     }
 
     if (week.week_number === verslunarWeekNum) {
-      if (SHARED_WEEK_HAS_OWNER) {
+      if (VERSLUNAR_WEEK_HAS_OWNER) {
         const householdId = yearRecord.rotation_order[rotationIndex % yearRecord.rotation_order.length]
         rotationIndex++ // household sacrifices their slot
         return { ...base, type: 'shared_verslunarmannahelgi' as const, household_id: householdId }
       }
+      // Pause: no owner, index unchanged
       return { ...base, type: 'shared_verslunarmannahelgi' as const, household_id: null }
     }
     if (springWeekNum && week.week_number === springWeekNum) {
-      if (SHARED_WEEK_HAS_OWNER) {
+      if (SPRING_WEEK_HAS_OWNER) {
         const householdId = yearRecord.rotation_order[rotationIndex % yearRecord.rotation_order.length]
         rotationIndex++ // household sacrifices their slot
         return { ...base, type: 'shared_spring' as const, household_id: householdId }

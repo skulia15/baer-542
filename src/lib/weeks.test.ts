@@ -3,7 +3,8 @@ import {
   generateThursdayWeeks,
   findVerslunarmannahelgiWeek,
   generateAllocations,
-  SHARED_WEEK_HAS_OWNER,
+  SPRING_WEEK_HAS_OWNER,
+  VERSLUNAR_WEEK_HAS_OWNER,
 } from './weeks'
 import type { Year, Household } from '@/types/db'
 
@@ -120,8 +121,9 @@ describe('generateAllocations', () => {
     const allocations = generateAllocations(yearRecord, households)
     const verslunar = allocations.find((a) => a.type === 'shared_verslunarmannahelgi')
     expect(verslunar).toBeDefined()
-    // Week 31 in 2026: 30 household weeks before it → rotationIndex 30 → 30 % 3 = 0 → 'hh-a'
-    if (SHARED_WEEK_HAS_OWNER) {
+    // VERSLUNAR_WEEK_HAS_OWNER=false: communal holiday, no owner, rotation pauses
+    if (VERSLUNAR_WEEK_HAS_OWNER) {
+      // Week 31 in 2026: 30 household weeks before it → rotationIndex 30 → 30 % 3 = 0 → 'hh-a'
       expect(verslunar!.household_id).toBe('hh-a')
     } else {
       expect(verslunar!.household_id).toBeNull()
@@ -140,7 +142,7 @@ describe('generateAllocations', () => {
     const spring = allocations.find((a) => a.week_number === 18)
     expect(spring!.type).toBe('shared_spring')
     // Weeks 1–17 are household weeks → rotationIndex 17 → 17 % 3 = 2 → 'hh-c'
-    if (SHARED_WEEK_HAS_OWNER) {
+    if (SPRING_WEEK_HAS_OWNER) {
       expect(spring!.household_id).toBe('hh-c')
     } else {
       expect(spring!.household_id).toBeNull()
@@ -153,7 +155,7 @@ describe('generateAllocations', () => {
     const spring = allocations.find((a) => a.week_number === 5)
     // Week 5: weeks 1–4 are household → rotationIndex 4 → 4 % 3 = 1 → 'hh-b' (sacrificed)
     expect(spring!.type).toBe('shared_spring')
-    if (SHARED_WEEK_HAS_OWNER) {
+    if (SPRING_WEEK_HAS_OWNER) {
       expect(spring!.household_id).toBe('hh-b')
     }
     // Week 4 (household before shared): rotationIndex 3 → 3 % 3 = 0 → 'hh-a'
@@ -173,25 +175,38 @@ describe('generateAllocations', () => {
     expect(household[3].household_id).toBe('hh-a')
   })
 
-  it('rotation resumes correctly after shared week', () => {
+  it('spring week advances rotation index, verslunar week pauses it', () => {
+    // Spring at week 5. Verslunar is week 31 in 2026.
     const withSpring: Year = { ...yearRecord, spring_shared_week_number: 5 }
     const allocations = generateAllocations(withSpring, households)
-    if (SHARED_WEEK_HAS_OWNER) {
-      // With sacrifice semantics, ALL allocations (household + shared) consume one rotation slot each.
-      // Every allocation's household_id should match rotation_order[idx % 3] in sequence.
-      const rotation_order = ['hh-a', 'hh-b', 'hh-c']
-      let idx = 0
-      for (const alloc of allocations) {
-        expect(alloc.household_id).toBe(rotation_order[idx % 3])
-        idx++
-      }
+    const rotation_order = ['hh-a', 'hh-b', 'hh-c']
+
+    if (SPRING_WEEK_HAS_OWNER) {
+      // Spring consumes a slot — household + spring allocs together advance the index in order.
+      // Weeks 1–4: household (indices 0–3), week 5: spring (index 4, hh-b), week 6+: household (index 5+)
+      const nonVerslunarAllocs = allocations.filter((a) => a.type !== 'shared_verslunarmannahelgi')
+      nonVerslunarAllocs.forEach((a, i) => {
+        expect(a.household_id).toBe(rotation_order[i % 3])
+      })
     } else {
-      // With pause semantics, only household-type weeks consume rotation slots.
+      // Spring pauses — only household-type weeks consume slots.
       const householdAllocs = allocations.filter((a) => a.type === 'household')
-      const rotation_order = ['hh-a', 'hh-b', 'hh-c']
       householdAllocs.forEach((a, i) => {
         expect(a.household_id).toBe(rotation_order[i % 3])
       })
+    }
+
+    // Verslunar week (31): VERSLUNAR_WEEK_HAS_OWNER=false → null, index does not advance.
+    const verslunarAlloc = allocations.find((a) => a.type === 'shared_verslunarmannahelgi')!
+    if (VERSLUNAR_WEEK_HAS_OWNER) {
+      expect(verslunarAlloc.household_id).not.toBeNull()
+    } else {
+      expect(verslunarAlloc.household_id).toBeNull()
+      // Confirm rotation continues from same index after verslunar.
+      // Weeks 1–4 + spring (5) = 5 slots; weeks 6–30 = 25 slots → index 30 at verslunar.
+      // Week 32 = index 30 → 30 % 3 = 0 → hh-a (not hh-b, which would result if verslunar advanced).
+      const week32 = allocations.find((a) => a.week_number === 32)!
+      expect(week32.household_id).toBe('hh-a')
     }
   })
 

@@ -5,7 +5,7 @@ import { RotationSorter } from '@/components/forms/rotation-sorter'
 import { useBanner } from '@/hooks/use-banner'
 import { formatWeekRange } from '@/lib/dates'
 import { createClient } from '@/lib/supabase/client'
-import { SHARED_WEEK_HAS_OWNER, generateAllocations } from '@/lib/weeks'
+import { SPRING_WEEK_HAS_OWNER, generateAllocations } from '@/lib/weeks'
 import type { Household, Year } from '@/types/db'
 import { ChevronLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -95,7 +95,7 @@ export function UppsetningClient() {
         <RotationSorter households={households} order={order} onChange={setOrder} />
       </section>
 
-      {SHARED_WEEK_HAS_OWNER && (
+      {SPRING_WEEK_HAS_OWNER && (
         <section className="mb-6">
           <p className="mb-2 text-sm font-medium text-stone-700">Vinnuvika:</p>
           <select
