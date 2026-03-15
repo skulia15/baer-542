@@ -16,7 +16,7 @@ export function HouseholdLegend({ households }: HouseholdLegendProps) {
           <span className="truncate font-medium text-stone-700">{h.name}</span>
         </div>
       ))}
-      <div className="flex items-center gap-2 text-sm col-span-2 mt-0.5">
+      <div className="flex items-center gap-2 text-sm">
         <span
           className="h-3 w-8 flex-shrink-0 rounded-full"
           style={{ background: 'repeating-linear-gradient(-45deg, #9ca3af, #9ca3af 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 6px)' }}
