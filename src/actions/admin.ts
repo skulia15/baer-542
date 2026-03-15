@@ -174,3 +174,16 @@ export async function adminUpdateRole(userId: string, role: 'head' | 'member'): 
 
   return { success: true }
 }
+
+export async function adminDeleteUser(userId: string): Promise<Result> {
+  const check = await verifyAdmin()
+  if ('error' in check) return check
+
+  if (userId === check.userId) return { error: 'Þú getur ekki eytt þér sjálfum' }
+
+  const service = createServiceClient()
+  const { error } = await service.auth.admin.deleteUser(userId)
+  if (error) return { error: error.message }
+
+  return { success: true }
+}

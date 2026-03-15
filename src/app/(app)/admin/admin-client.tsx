@@ -3,6 +3,7 @@
 import type { ProfileWithHousehold } from '@/actions/admin'
 import {
   adminCreateUser,
+  adminDeleteUser,
   adminSendTestEmail,
   adminUpdateEmail,
   adminUpdateHousehold,
@@ -212,6 +213,24 @@ function UserEditPanel({
   households,
   onSuccess,
 }: { user: ProfileWithHousehold; households: Household[]; onSuccess: () => void }) {
+  const router = useRouter()
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deletePending, startDeleteTransition] = useTransition()
+  const [deleteError, setDeleteError] = useState('')
+
+  function handleDelete() {
+    setDeleteError('')
+    startDeleteTransition(async () => {
+      const res = await adminDeleteUser(user.id)
+      if ('error' in res) {
+        setDeleteError(res.error)
+        setDeleteConfirm(false)
+      } else {
+        router.refresh()
+      }
+    })
+  }
+
   return (
     <div className="border-t border-stone-100 bg-stone-50 px-4 py-5">
       <div className="grid gap-4">
@@ -252,6 +271,37 @@ function UserEditPanel({
           onSave={async (v) => adminUpdateRole(user.id, v as 'head' | 'member')}
           onSuccess={onSuccess}
         />
+        <div className="border-t border-stone-200 pt-3">
+          {deleteConfirm ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-stone-600">Ertu viss?</span>
+              <button
+                type="button"
+                disabled={deletePending}
+                onClick={handleDelete}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              >
+                {deletePending ? 'Eyðir…' : 'Já, eyða'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(false)}
+                className="rounded-lg border border-stone-200 px-3 py-1.5 text-sm text-stone-600"
+              >
+                Hætta við
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDeleteConfirm(true)}
+              className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+            >
+              Eyða notanda
+            </button>
+          )}
+          {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+        </div>
       </div>
     </div>
   )
