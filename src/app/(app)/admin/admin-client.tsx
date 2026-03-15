@@ -11,6 +11,7 @@ import {
   adminUpdatePhone,
   adminUpdateRole,
 } from '@/actions/admin'
+import { adminGenerateInviteLink } from '@/actions/invite'
 import type { Household } from '@/types/db'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
@@ -77,6 +78,8 @@ export function AdminClient({ profiles, households }: Props) {
         />
       )}
 
+      <InviteSection households={households} />
+
       <ul className="divide-y divide-stone-100 rounded-xl border border-stone-200">
         {profiles.map((p) => (
           <li key={p.id}>
@@ -104,6 +107,71 @@ export function AdminClient({ profiles, households }: Props) {
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+function InviteSection({ households }: { households: Household[] }) {
+  const [householdId, setHouseholdId] = useState(households[0]?.id ?? '')
+  const [url, setUrl] = useState('')
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [pending, startTransition] = useTransition()
+
+  function handleGenerate() {
+    setUrl('')
+    setError('')
+    setCopied(false)
+    startTransition(async () => {
+      const res = await adminGenerateInviteLink(householdId)
+      if (res.error) setError(res.error)
+      else setUrl(res.url ?? '')
+    })
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="mb-6 rounded-xl border border-stone-200 p-4">
+      <h2 className="mb-3 font-semibold text-stone-800">Boðshlekk</h2>
+      <div className="flex gap-2">
+        <select
+          value={householdId}
+          onChange={(e) => { setHouseholdId(e.target.value); setUrl(''); setError('') }}
+          className={inputCls}
+        >
+          {households.map((h) => (
+            <option key={h.id} value={h.id}>
+              {h.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={pending}
+          className="shrink-0 rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {pending ? 'Bý til…' : 'Búa til boðshlekk'}
+        </button>
+      </div>
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {url && (
+        <div className="mt-3 flex items-center gap-2">
+          <input readOnly value={url} className={`${inputCls} flex-1 truncate font-mono text-xs`} />
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="shrink-0 rounded-lg border border-stone-200 px-3 py-1.5 text-sm text-stone-600"
+          >
+            {copied ? 'Afritað!' : 'Afrita'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
