@@ -122,7 +122,9 @@ export function MonthGrid({
 
           const rgb = household ? hexToRgb(household.color) : null
           const bgColor = isShared
-            ? 'rgba(156,163,175,0.15)'
+            ? rgb
+              ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`
+              : 'rgba(156,163,175,0.15)'
             : claimedRgb
               ? `rgba(${claimedRgb.r},${claimedRgb.g},${claimedRgb.b},0.2)`
               : rgb
@@ -131,7 +133,7 @@ export function MonthGrid({
                   : `rgba(${rgb.r},${rgb.g},${rgb.b},0.2)`
                 : 'white'
 
-          const accentColor = isShared ? '#9ca3af' : (household?.color ?? null)
+          const accentColor = household?.color ?? (isShared ? '#9ca3af' : null)
 
           return (
             <Link key={ds} href={allocation ? `/dagatal/vika/${allocation.week_number}` : '#'}>

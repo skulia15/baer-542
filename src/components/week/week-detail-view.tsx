@@ -61,9 +61,8 @@ export function WeekDetailView({
   )
   const plannedDays = new Set(plans.map((p) => p.date))
 
-  const barStyle = isShared
-    ? { backgroundColor: '#9ca3af', color: '#ffffff' }
-    : household
+  const barStyle =
+    household
       ? getHouseholdStyle(household.color)
       : { backgroundColor: '#9ca3af', color: '#ffffff' }
 
@@ -98,6 +97,7 @@ export function WeekDetailView({
         <div className="font-semibold">
           Vika {allocation.week_number}
           {!isShared && household && ` — ${household.name}`}
+          {isShared && household && ` — ${household.name}`}
           {isShared &&
             (allocation.type === 'shared_verslunarmannahelgi' ? ' — Versló vika' : ' — Vinnuvika')}
         </div>

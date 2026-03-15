@@ -1,6 +1,9 @@
 import { addDays, getDay, startOfYear, getYear, format } from 'date-fns'
 import type { WeekAllocation, Year, Household } from '@/types/db'
 
+// Set to false to revert to unattributed shared weeks (original behaviour).
+export const SHARED_WEEK_HAS_OWNER = true
+
 export interface Week {
   week_number: number
   week_start: Date // Thursday
@@ -72,10 +75,16 @@ export function generateAllocations(
     }
 
     if (week.week_number === verslunarWeekNum) {
-      return { ...base, type: 'shared_verslunarmannahelgi' as const, household_id: null }
+      const ownerId = SHARED_WEEK_HAS_OWNER
+        ? yearRecord.rotation_order[rotationIndex % yearRecord.rotation_order.length]
+        : null
+      return { ...base, type: 'shared_verslunarmannahelgi' as const, household_id: ownerId ?? null }
     }
     if (springWeekNum && week.week_number === springWeekNum) {
-      return { ...base, type: 'shared_spring' as const, household_id: null }
+      const ownerId = SHARED_WEEK_HAS_OWNER
+        ? yearRecord.rotation_order[rotationIndex % yearRecord.rotation_order.length]
+        : null
+      return { ...base, type: 'shared_spring' as const, household_id: ownerId ?? null }
     }
 
     const householdId =

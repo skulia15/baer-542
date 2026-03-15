@@ -41,8 +41,13 @@ export function WeekRow({
   const hasAvailable = availableCount > 0
   const isShared = allocation.type !== 'household'
 
+  const sharedLabel =
+    allocation.type === 'shared_verslunarmannahelgi' ? 'Versló vika' : 'Vinnuvika'
+
   const barStyle = isShared
-    ? { backgroundColor: '#9ca3af', color: '#ffffff' }
+    ? household
+      ? getHouseholdStyle(household.color)
+      : { backgroundColor: '#9ca3af', color: '#ffffff' }
     : isOwn && isFullyReleased && household
       ? getHouseholdFadedStyle(household.color)
       : !isOwn && hasAvailable && household
@@ -52,9 +57,9 @@ export function WeekRow({
           : { backgroundColor: '#9ca3af', color: '#ffffff' }
 
   const label = isShared
-    ? allocation.type === 'shared_verslunarmannahelgi'
-      ? 'Versló vika'
-      : 'Vinnuvika'
+    ? household
+      ? `${household.name} — ${sharedLabel}`
+      : sharedLabel
     : (household?.name ?? '—')
 
   return (

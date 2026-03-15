@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { generateThursdayWeeks, findVerslunarmannahelgiWeek, generateAllocations } from './weeks'
+import {
+  generateThursdayWeeks,
+  findVerslunarmannahelgiWeek,
+  generateAllocations,
+  SHARED_WEEK_HAS_OWNER,
+} from './weeks'
 import type { Year, Household } from '@/types/db'
 
 describe('generateThursdayWeeks', () => {
@@ -115,7 +120,12 @@ describe('generateAllocations', () => {
     const allocations = generateAllocations(yearRecord, households)
     const verslunar = allocations.find((a) => a.type === 'shared_verslunarmannahelgi')
     expect(verslunar).toBeDefined()
-    expect(verslunar!.household_id).toBeNull()
+    // Week 31 in 2026: 30 household weeks before it → rotationIndex 30 → 30 % 3 = 0 → 'hh-a'
+    if (SHARED_WEEK_HAS_OWNER) {
+      expect(verslunar!.household_id).toBe('hh-a')
+    } else {
+      expect(verslunar!.household_id).toBeNull()
+    }
   })
 
   it('only one verslunarmannahelgi week per year', () => {
@@ -129,7 +139,29 @@ describe('generateAllocations', () => {
     const allocations = generateAllocations(withSpring, households)
     const spring = allocations.find((a) => a.week_number === 18)
     expect(spring!.type).toBe('shared_spring')
-    expect(spring!.household_id).toBeNull()
+    // Weeks 1–17 are household weeks → rotationIndex 17 → 17 % 3 = 2 → 'hh-c'
+    if (SHARED_WEEK_HAS_OWNER) {
+      expect(spring!.household_id).toBe('hh-c')
+    } else {
+      expect(spring!.household_id).toBeNull()
+    }
+  })
+
+  it('shared week owner matches rotation slot without advancing rotation', () => {
+    const withSpring: Year = { ...yearRecord, spring_shared_week_number: 5 }
+    const allocations = generateAllocations(withSpring, households)
+    const spring = allocations.find((a) => a.week_number === 5)
+    // Week 5: weeks 1–4 are household → rotationIndex 4 → 4 % 3 = 1 → 'hh-b'
+    expect(spring!.type).toBe('shared_spring')
+    if (SHARED_WEEK_HAS_OWNER) {
+      expect(spring!.household_id).toBe('hh-b')
+    }
+    // Week 4 (household before shared): rotationIndex 3 → 3 % 3 = 0 → 'hh-a'
+    const week4 = allocations.find((a) => a.week_number === 4)
+    expect(week4!.household_id).toBe('hh-a')
+    // Week 6 (household after shared): rotationIndex 4 → 4 % 3 = 1 → 'hh-b' (same as shared, rotation not advanced)
+    const week6 = allocations.find((a) => a.week_number === 6)
+    expect(week6!.household_id).toBe('hh-b')
   })
 
   it('rotation cycles through households in order', () => {
