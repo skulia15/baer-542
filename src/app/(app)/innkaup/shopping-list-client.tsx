@@ -8,10 +8,9 @@ import { useState } from 'react'
 type ItemWithJoins = {
   id: string
   name: string
-  created_by: string
   bought_at: string | null
-  reported_by_household: { name: string } | null
-  bought_by_household: { name: string } | null
+  reported_by_name: string | null
+  bought_by_name: string | null
 }
 
 type LogEntry = {
@@ -19,7 +18,7 @@ type LogEntry = {
   action: 'added' | 'bought' | 'deleted'
   item_name: string
   created_at: string
-  household: { name: string } | null
+  user_name: string | null
 }
 
 const ACTION_LABEL: Record<LogEntry['action'], string> = {
@@ -99,9 +98,9 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
               <div key={item.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-stone-900">{item.name}</p>
-                  {item.reported_by_household && (
+                  {item.reported_by_name && (
                     <p className="text-xs text-stone-400">
-                      Tilkynnt af: {item.reported_by_household.name}
+                      Tilkynnt af: {item.reported_by_name}
                     </p>
                   )}
                 </div>
@@ -134,8 +133,8 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-stone-500 line-through">{item.name}</p>
                   <p className="text-xs text-stone-400">
-                    {item.bought_by_household
-                      ? `Keypt af: ${item.bought_by_household.name} · `
+                    {item.bought_by_name
+                      ? `Keypt af: ${item.bought_by_name} · `
                       : ''}
                     {item.bought_at ? formatRelativeTime(item.bought_at) : ''}
                   </p>
@@ -163,7 +162,7 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
             {log.map((entry) => (
               <div key={entry.id} className="flex items-baseline justify-between px-4 py-2">
                 <p className="text-sm text-stone-600">
-                  <span className="font-medium">{entry.household?.name ?? '—'}</span>{' '}
+                  <span className="font-medium">{entry.user_name ?? '—'}</span>{' '}
                   {ACTION_LABEL[entry.action]} <span className="italic">{entry.item_name}</span>
                 </p>
                 <p className="ml-3 shrink-0 text-xs text-stone-400">

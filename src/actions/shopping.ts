@@ -65,6 +65,7 @@ export async function markAsBought(id: string): Promise<{ success: true } | { er
     .update({
       bought_at: new Date().toISOString(),
       bought_by_household_id: profile.household_id as string,
+      bought_by: user.id,
     })
     .eq('id', id)
   if (error) return { error: error.message }
