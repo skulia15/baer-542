@@ -23,38 +23,47 @@ export default async function InnkaupPage() {
   const household = profile.household as unknown as { house_id: string } | null
   if (!household) redirect('/login')
 
-  const [{ data: items }, { data: log }] = await Promise.all([
+  const [{ data: items }, { data: log }, { data: profiles }] = await Promise.all([
     supabase
       .from('shopping_item')
-      .select(
-        '*, reported_by_household:reported_by_household_id(name), bought_by_household:bought_by_household_id(name)',
-      )
+      .select('*')
       .eq('house_id', household.house_id)
       .order('created_at', { ascending: false }),
     supabase
       .from('shopping_item_log')
-      .select('*, household:household_id(name)')
+      .select('*')
       .eq('house_id', household.house_id)
       .order('created_at', { ascending: false })
       .limit(30),
+    supabase
+      .from('profile')
+      .select('id, name, household:household_id(house_id)')
   ])
 
-  const typedItems = (items ?? []) as unknown as {
-    id: string
-    name: string
-    created_by: string
-    bought_at: string | null
-    reported_by_household: { name: string } | null
-    bought_by_household: { name: string } | null
-  }[]
+  // Build a lookup from user id to profile name
+  const nameMap: Record<string, string> = {}
+  for (const p of profiles ?? []) {
+    const h = p.household as unknown as { house_id: string } | null
+    if (h?.house_id === household.house_id) {
+      nameMap[p.id] = p.name
+    }
+  }
 
-  const typedLog = (log ?? []) as unknown as {
-    id: string
-    action: 'added' | 'bought' | 'deleted'
-    item_name: string
-    created_at: string
-    household: { name: string } | null
-  }[]
+  const typedItems = (items ?? []).map((item) => ({
+    id: item.id as string,
+    name: item.name as string,
+    bought_at: item.bought_at as string | null,
+    reported_by_name: nameMap[item.created_by as string] ?? null,
+    bought_by_name: item.bought_by ? (nameMap[item.bought_by as string] ?? null) : null,
+  }))
+
+  const typedLog = (log ?? []).map((entry) => ({
+    id: entry.id as string,
+    action: entry.action as 'added' | 'bought' | 'deleted',
+    item_name: entry.item_name as string,
+    created_at: entry.created_at as string,
+    user_name: nameMap[entry.created_by as string] ?? null,
+  }))
 
   const pendingCount = typedItems.filter((i) => !i.bought_at).length
 

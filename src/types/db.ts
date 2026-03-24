@@ -139,6 +139,7 @@ export interface ShoppingItem {
   created_at: string
   bought_at: string | null
   bought_by_household_id: string | null
+  bought_by: string | null
 }
 
 // Joined types

@@ -3,15 +3,14 @@
 import { addShoppingItem, deleteShoppingItem, markAsBought } from '@/actions/shopping'
 import { formatRelativeTime } from '@/lib/dates'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type ItemWithJoins = {
   id: string
   name: string
-  created_by: string
   bought_at: string | null
-  reported_by_household: { name: string } | null
-  bought_by_household: { name: string } | null
+  reported_by_name: string | null
+  bought_by_name: string | null
 }
 
 type LogEntry = {
@@ -19,7 +18,7 @@ type LogEntry = {
   action: 'added' | 'bought' | 'deleted'
   item_name: string
   created_at: string
-  household: { name: string } | null
+  user_name: string | null
 }
 
 const ACTION_LABEL: Record<LogEntry['action'], string> = {
@@ -28,11 +27,32 @@ const ACTION_LABEL: Record<LogEntry['action'], string> = {
   deleted: 'eyddi',
 }
 
+const UNDO_DELAY_MS = 5000
+
 export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log: LogEntry[] }) {
   const router = useRouter()
   const [newItem, setNewItem] = useState('')
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const commitDelete = useCallback(
+    async (id: string) => {
+      setPendingDelete(null)
+      const result = await deleteShoppingItem(id)
+      if ('error' in result) setError(result.error)
+      else router.refresh()
+    },
+    [router],
+  )
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+    }
+  }, [])
 
   const pending = items.filter((i) => !i.bought_at)
   const bought = items.filter((i) => i.bought_at)
@@ -58,10 +78,25 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
     else router.refresh()
   }
 
-  async function handleDelete(id: string) {
-    const result = await deleteShoppingItem(id)
-    if ('error' in result) setError(result.error)
-    else router.refresh()
+  function handleDelete(id: string, name: string) {
+    // If there's already a pending delete, commit it immediately
+    if (pendingDelete && deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      commitDelete(pendingDelete.id)
+    }
+
+    setPendingDelete({ id, name })
+    deleteTimerRef.current = setTimeout(() => {
+      commitDelete(id)
+    }, UNDO_DELAY_MS)
+  }
+
+  function handleUndo() {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = null
+    }
+    setPendingDelete(null)
   }
 
   return (
@@ -99,9 +134,9 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
               <div key={item.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-stone-900">{item.name}</p>
-                  {item.reported_by_household && (
+                  {item.reported_by_name && (
                     <p className="text-xs text-stone-400">
-                      Tilkynnt af: {item.reported_by_household.name}
+                      Tilkynnt af: {item.reported_by_name}
                     </p>
                   )}
                 </div>
@@ -129,26 +164,28 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
             Keypt
           </p>
           <div className="divide-y divide-stone-100">
-            {bought.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 px-4 py-3 opacity-60">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-stone-500 line-through">{item.name}</p>
-                  <p className="text-xs text-stone-400">
-                    {item.bought_by_household
-                      ? `Keypt af: ${item.bought_by_household.name} · `
-                      : ''}
-                    {item.bought_at ? formatRelativeTime(item.bought_at) : ''}
-                  </p>
+            {bought
+              .filter((item) => item.id !== pendingDelete?.id)
+              .map((item) => (
+                <div key={item.id} className="flex items-center gap-3 px-4 py-3 opacity-60">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-stone-500 line-through">{item.name}</p>
+                    <p className="text-xs text-stone-400">
+                      {item.bought_by_name
+                        ? `Keypt af: ${item.bought_by_name} · `
+                        : ''}
+                      {item.bought_at ? formatRelativeTime(item.bought_at) : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(item.id, item.name)}
+                    className="shrink-0 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100"
+                  >
+                    Eyða
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(item.id)}
-                  className="shrink-0 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition-colors hover:bg-stone-100"
-                >
-                  Eyða
-                </button>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}
@@ -163,7 +200,7 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
             {log.map((entry) => (
               <div key={entry.id} className="flex items-baseline justify-between px-4 py-2">
                 <p className="text-sm text-stone-600">
-                  <span className="font-medium">{entry.household?.name ?? '—'}</span>{' '}
+                  <span className="font-medium">{entry.user_name ?? '—'}</span>{' '}
                   {ACTION_LABEL[entry.action]} <span className="italic">{entry.item_name}</span>
                 </p>
                 <p className="ml-3 shrink-0 text-xs text-stone-400">
@@ -172,6 +209,22 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Undo delete toast */}
+      {pendingDelete && (
+        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg bg-stone-800 px-4 py-3 text-sm text-white shadow-lg">
+          <span>
+            <span className="font-medium">{pendingDelete.name}</span> eytt
+          </span>
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="font-semibold text-green-400 transition-colors hover:text-green-300"
+          >
+            Afturkalla
+          </button>
         </div>
       )}
     </div>
