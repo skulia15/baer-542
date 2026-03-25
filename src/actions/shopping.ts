@@ -83,6 +83,43 @@ export async function markAsBought(id: string): Promise<{ success: true } | { er
   return { success: true }
 }
 
+export async function unmarkAsBought(id: string): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ekki innskráður' }
+
+  const { data: item } = await supabase
+    .from('shopping_item')
+    .select('name, house_id')
+    .eq('id', id)
+    .single()
+
+  const { error } = await supabase
+    .from('shopping_item')
+    .update({ bought_at: null, bought_by_household_id: null, bought_by: null })
+    .eq('id', id)
+  if (error) return { error: error.message }
+
+  if (item) {
+    const { data: logEntry } = await supabase
+      .from('shopping_item_log')
+      .select('id')
+      .eq('house_id', item.house_id)
+      .eq('action', 'bought')
+      .eq('item_name', item.name)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    if (logEntry) {
+      await supabase.from('shopping_item_log').delete().eq('id', logEntry.id)
+    }
+  }
+
+  return { success: true }
+}
+
 export async function deleteShoppingItem(
   id: string,
 ): Promise<{ success: true } | { error: string }> {

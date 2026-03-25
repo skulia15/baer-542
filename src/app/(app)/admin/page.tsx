@@ -1,5 +1,6 @@
 import type { ProfileWithHousehold } from '@/actions/admin'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import type { Household } from '@/types/db'
 import { redirect } from 'next/navigation'
 import { AdminClient } from './admin-client'
@@ -21,7 +22,8 @@ export default async function AdminPage() {
 
   const houseId = (profile?.household as unknown as { house_id: string } | null)?.house_id
 
-  const { data: profiles } = await supabase
+  const serviceClient = createServiceClient()
+  const { data: profiles } = await serviceClient
     .from('profile')
     .select('*, household:household_id(id, name, color)')
     .order('name')

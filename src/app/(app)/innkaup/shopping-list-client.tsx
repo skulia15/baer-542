@@ -1,6 +1,11 @@
 'use client'
 
-import { addShoppingItem, deleteShoppingItem, markAsBought } from '@/actions/shopping'
+import {
+  addShoppingItem,
+  deleteShoppingItem,
+  markAsBought,
+  unmarkAsBought,
+} from '@/actions/shopping'
 import { formatRelativeTime } from '@/lib/dates'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -33,7 +38,10 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
   const router = useRouter()
   const [newItem, setNewItem] = useState('')
   const [adding, setAdding] = useState(false)
+  const [buyingId, setBuyingId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [boughtToast, setBoughtToast] = useState<{ id: string; name: string } | null>(null)
+  const boughtTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
   const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -47,9 +55,9 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
     [router],
   )
 
-  // Clean up timer on unmount
   useEffect(() => {
     return () => {
+      if (boughtTimerRef.current) clearTimeout(boughtTimerRef.current)
       if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
     }
   }, [])
@@ -72,8 +80,26 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
     setAdding(false)
   }
 
-  async function handleMarkBought(id: string) {
+  async function handleMarkBought(id: string, name: string) {
+    setBuyingId(id)
     const result = await markAsBought(id)
+    if ('error' in result) {
+      setError(result.error)
+    } else {
+      if (boughtTimerRef.current) clearTimeout(boughtTimerRef.current)
+      setBoughtToast({ id, name })
+      boughtTimerRef.current = setTimeout(() => setBoughtToast(null), 5000)
+      router.refresh()
+    }
+    setBuyingId(null)
+  }
+
+  async function handleUndoBought() {
+    if (!boughtToast) return
+    const { id } = boughtToast
+    setBoughtToast(null)
+    if (boughtTimerRef.current) clearTimeout(boughtTimerRef.current)
+    const result = await unmarkAsBought(id)
     if ('error' in result) setError(result.error)
     else router.refresh()
   }
@@ -135,17 +161,16 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-stone-900">{item.name}</p>
                   {item.reported_by_name && (
-                    <p className="text-xs text-stone-400">
-                      Tilkynnt af: {item.reported_by_name}
-                    </p>
+                    <p className="text-xs text-stone-400">Tilkynnt af: {item.reported_by_name}</p>
                   )}
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleMarkBought(item.id)}
-                  className="shrink-0 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-100"
+                  onClick={() => handleMarkBought(item.id, item.name)}
+                  disabled={buyingId === item.id}
+                  className="shrink-0 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-100 disabled:opacity-50"
                 >
-                  Keypt
+                  {buyingId === item.id ? '...' : 'Keypt'}
                 </button>
               </div>
             ))}
@@ -171,9 +196,7 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-stone-500 line-through">{item.name}</p>
                     <p className="text-xs text-stone-400">
-                      {item.bought_by_name
-                        ? `Keypt af: ${item.bought_by_name} · `
-                        : ''}
+                      {item.bought_by_name ? `Keypt af: ${item.bought_by_name} · ` : ''}
                       {item.bought_at ? formatRelativeTime(item.bought_at) : ''}
                     </p>
                   </div>
@@ -209,6 +232,22 @@ export function ShoppingListClient({ items, log }: { items: ItemWithJoins[]; log
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Undo bought toast */}
+      {boughtToast && (
+        <div className="fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg bg-stone-800 px-4 py-3 text-sm text-white shadow-lg">
+          <span>
+            Keypt: <span className="font-medium">{boughtToast.name}</span>
+          </span>
+          <button
+            type="button"
+            onClick={handleUndoBought}
+            className="font-semibold text-green-400 transition-colors hover:text-green-300"
+          >
+            Afturkalla
+          </button>
         </div>
       )}
 
