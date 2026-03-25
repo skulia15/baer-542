@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { ShoppingCart } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { ShoppingListClient } from './shopping-list-client'
@@ -35,7 +36,7 @@ export default async function InnkaupPage() {
       .eq('house_id', household.house_id)
       .order('created_at', { ascending: false })
       .limit(30),
-    supabase
+    createServiceClient()
       .from('profile')
       .select('id, name, household:household_id(house_id)')
   ])
